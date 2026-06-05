@@ -19,14 +19,14 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
-        self.agents = []
+        self.harvest_agents = []
         for i in range(self.num_agents):
             agent = HarvestAgent(self, i)
 
             cell = self.random.choice(list(self.grid.all_cells.cells))
-            self.grid.place_agent(agent, cell)
+            agent.move_to(cell)
 
-            self.agents.append(agent)
+            self.harvest_agents.append(agent)
         
     
     def step(self):

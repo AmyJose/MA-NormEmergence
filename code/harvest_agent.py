@@ -1,6 +1,8 @@
-from mesa import Agent
+from mesa.discrete_space import CellAgent
+from modules.decisions import DecisionModule
+from modules.norms import NormsModule
 
-class HarvestAgent(Agent):
+class HarvestAgent(CellAgent):
     """Agent in the model environment"""
 
     def __init__(self, model, id):
@@ -10,33 +12,21 @@ class HarvestAgent(Agent):
 
         self.health = 10
         self.berries = 0
+        self.actions = self._generate_actions()
+
+        self.norms_module = NormsModule(id)
+        self.decision_module = DecisionModule(id)
 
     def step(self):
-        self.health -= 1
-
-        action = self.choose_action()
+        action = self.decision_module.choose_action()
 
         self.perform_action(action)
-
-    def choose_action(self):
-        #Rule based for now!
-        if self.health < 3 and self.berries > 0:
-            return "eat"
-        
-        if self.on_berry():
-            return "collect"
-        
-        if self.can_help_someone():
-            return "give"
-        
-        return "move"
-
     
-    def perform_action(self):
-        None
+    def perform_action(self, action):
+        pre = self.norms_module.get_pre(self.berries, self.health)
+        self.norms_module.update_behaviour_base(pre, action)
 
-    def on_berry(self):
-        return self.model.get_berry_from_coord(self.grid.cell)
+    def _generate_actions(self):
+        actions = ["move", "eat"]
+        return actions
     
-    def can_help_someone():
-        return
