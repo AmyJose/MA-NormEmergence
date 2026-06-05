@@ -40,3 +40,6 @@ class HarvestModel(mesa.Model):
             y = self.random.randrange(self.grid.height)
 
             self.berries.add((x, y))
+
+    def get_berry_from_coord(self, cell):
+        return self.berries.__contains__(cell)
