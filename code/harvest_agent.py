@@ -13,3 +13,13 @@ class HarvestAgent(Agent):
 
     def step(self):
         self.health -= 1
+
+        action = self.choose_action()
+
+        self.perform_action(action)
+
+    def choose_action(self):
+        return
+    
+    def perform_action(self):
+        None
