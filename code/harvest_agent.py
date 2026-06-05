@@ -10,9 +10,11 @@ class HarvestAgent(CellAgent):
 
         self.id = id
 
-        self.health = 10
+        self.health = 0.8
         self.berries = 0
         self.actions = self._generate_actions()
+
+        self.health_decay = 0.1
 
         self.norms_module = NormsModule(id)
         self.decision_module = DecisionModule(id)
@@ -24,9 +26,12 @@ class HarvestAgent(CellAgent):
     
     def perform_action(self, action):
         pre = self.norms_module.get_pre(self.berries, self.health)
+        self._update_attributes()
         self.norms_module.update_behaviour_base(pre, action)
 
     def _generate_actions(self):
         actions = ["move", "eat"]
         return actions
     
+    def _update_attributes(self):
+        self.health -= self.health_decay
