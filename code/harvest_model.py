@@ -32,13 +32,20 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
+        self.max_steps = 50
+        self.episode_done = False
     
     def step(self):
+        if self.episode_done:
+            return
+        
         self.agents.shuffle_do("step")
 
         emerged_norms = self.check_emergent_norms()
-
         self.update_emerged_norms(emerged_norms)
+
+        if self.steps >= self.max_steps or all(agent.dead for agent in self.harvest_agents):
+            self.episode_done = True
 
     def spawn_berries(self):
         self.berries.clear()
