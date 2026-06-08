@@ -31,6 +31,73 @@ Each timestep agents may:
 
 Health decreases over time. Agents that reach zero health are considered dead and no longer participate in the simulation.
 
+## Current Experimental Configuration
+
+### Environment
+
+| Parameter | Value |
+|------------|---------|
+| Grid Size | 10 × 10 |
+| Initial Agents | 4 |
+| Initial Berries | 12 |
+| Initial Agent Health | 5.0 |
+| Health Decay per Step | 0.01 |
+| Health Gain per Berry Eaten | 0.1 |
+| Throw Threshold | 0.6 |
+| Maximum Episode Length | 500 steps |
+| Agent Activation | Random asynchronous order |
+| Berry Regrowth | One berry spawned after each berry is eaten |
+
+### Agent Actions
+
+At each timestep an agent may choose one of:
+
+- Move North
+- Move South
+- Move East
+- Move West
+- Eat a berry
+- Throw a berry to another agent
+
+### Agent Observations
+
+Each agent observes:
+
+- Current health
+- Number of berries carried
+- Distance to nearest berry
+- Society wellbeing
+
+Society wellbeing is calculated as:
+
+```text
+wellbeing = (health + (berries × berry_health_payoff))
+            / health_decay
+```
+
+### Health States
+
+| State | Range |
+|---------|---------|
+| Low Health | < 2.5 |
+| Medium Health | 2.5 ≤ health < 4.0 |
+| High Health | ≥ 4.0 |
+
+### Berry States
+
+| State | Range |
+|---------|---------|
+| No Berries | 0 |
+| Medium Berries | 1–2 |
+| High Berries | ≥ 3 |
+
+### Episode Termination
+
+An episode ends when:
+
+- All agents have died, or
+- The maximum episode length is reached.
+
 ## Norm Representation
 
 Behaviours are represented as:

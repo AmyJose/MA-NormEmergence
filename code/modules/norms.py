@@ -5,40 +5,28 @@ class NormsModule:
 
         self.low_berries_threshold = 1
         self.high_berries_threshold = 3
-        self.low_health_threshold = 0.6
-        self.high_health_threshold = 2.0
+        self.low_health_threshold = 2.5
+        self.high_health_threshold = 4.0
+        self.low_wellbeing_threshold = 250
+        self.high_wellbeing_threshold = 400
 
-    def get_pre(self, berries, health):
-        #get state of berries
-        if berries == 0:
-            b = "no berries"
-        elif berries > 0 and berries < self.low_berries_threshold:
-            b = "low berries"
-        elif berries >= self.low_berries_threshold and berries < self.high_berries_threshold:
-            b = "medium berries"
-        else:
-            "high berries"
+    def get_pre(self, observation):
+        berries = observation["berries"]
+        health = observation["health"]
+        society_wellbeing = observation["society_wellbeing"]
         
-        #state of health
-        if health < self.low_health_threshold:
-            h = "low health"
-        elif health >= self.low_health_threshold and health < self.high_health_threshold:
-            h = "medium health"
-        else:
-            h = "high health"
-        
-        pre = ",".join(["IF", b, h])
+        b = self._bucket_berries(berries)
+        h = self._bucket_health(health)
+        w = self._bucket_min_wellbeing(society_wellbeing)
 
-        return pre
+        return ",".join(["IF", b, h, w])
     
     def get_cons(self, action):
-        cons = "THEN,"
-        if action == "north" or action == "east" or action == "south" or action == "west":
-            return cons + "move"
-        elif "throw" in action:
-            return cons + "throw"
-        else:
-            return cons + action
+        if action in ["north", "east", "south", "west"]:
+            action = "move"
+        elif action.startswith("throw_"):
+            action = "throw"
+        return ",".join(["THEN", action])
 
     def update_behaviour_base(self, pre, action):
         cons = self.get_cons(action)
@@ -50,4 +38,34 @@ class NormsModule:
         else:
             self.behaviour_base[current_norm] = {"count": 1}
 
-        #print(self.behaviour_base)
+    def _bucket_berries(self, berries):
+        if berries == 0:
+            return "no berries"
+        elif berries < self.low_berries_threshold:
+            return "low berries"
+        elif berries < self.high_berries_threshold:
+            return "medium berries"
+        else:
+            return "high berries"
+    
+    def _bucket_health(self, health):
+        if health < self.low_health_threshold:
+            return "low health"
+        elif health < self.high_health_threshold:
+            return "medium health"
+        else:
+            return "high health"
+        
+    def _bucket_min_wellbeing(self, society_wellbeing):
+        if not society_wellbeing:
+            return "no others"
+
+        min_wellbeing = min(society_wellbeing)
+
+        if min_wellbeing < self.low_wellbeing_threshold:
+            return "low society wellbeing"
+        elif min_wellbeing < self.high_wellbeing_threshold:
+            return "medium society wellbeing"
+        else:
+            return "high society wellbeing"
+        

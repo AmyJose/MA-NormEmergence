@@ -2,7 +2,7 @@ from harvest_model import HarvestModel
 
 model = HarvestModel(seed=None)
 
-for _ in range(500):
+for _ in range(550):
     model.step()
 
-model.write_emerged_norms()
+#model.write_emerged_norms()

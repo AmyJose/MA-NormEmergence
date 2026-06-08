@@ -235,3 +235,6 @@ __pycache__/
 Thumbs.db
 
 emerged_norms.csv
+
+data/results *
+!data/results/current_run
