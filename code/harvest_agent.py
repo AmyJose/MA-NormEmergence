@@ -27,7 +27,9 @@ class HarvestAgent(CellAgent):
     def step(self):
         if self.dead:
             return
-        action = self.decision_module.choose_action()
+        
+        observation = self.observe
+        action = self.decision_module.choose_action(observation)
 
         self.perform_transition(action)
     
@@ -55,7 +57,7 @@ class HarvestAgent(CellAgent):
         }
 
     def _generate_actions(self):
-        actions = ["move", "eat"]
+        actions = ["north","south", "east", "west", "eat"]
 
         for agent_id in range(self.model.num_agents):
             if agent_id != self.id:
@@ -64,8 +66,8 @@ class HarvestAgent(CellAgent):
         return actions
     
     def _perform_action(self, action):
-        if action == "move":
-            self._move()
+        if action in ["north", "south", "east", "west"]:
+            self.moving_module.move(action)
         elif action == "eat":
             self._eat()
         elif action.startswith("throw_"):
@@ -82,15 +84,6 @@ class HarvestAgent(CellAgent):
         if self.cell in self.model.berries:
             self.model.berries.remove(self.cell)
             self.berries += 1
-
-    def _move(self):
-        berry_found, new_cell = self.moving_module.move_towards_nearest_berry()
-        
-        if berry_found:
-            self.berries += 1
-
-        if new_cell != self.cell:
-            self.move_to(new_cell)
 
     def _eat(self):
         if self.berries > 0:

@@ -5,7 +5,7 @@ import pandas as pd
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, seed, num_agents=4, num_berries=15, width=10, height=10):
+    def __init__(self, seed, num_agents=4, num_berries=12, width=8, height=4):
         super().__init__(seed=seed)
         self.width = width
         self.height = height
