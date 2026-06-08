@@ -37,7 +37,7 @@ Health decreases over time. Agents that reach zero health are considered dead an
 
 | Parameter | Value |
 |------------|---------|
-| Grid Size | 10 × 10 |
+| Grid Size | 8 x 4 |
 | Initial Agents | 4 |
 | Initial Berries | 12 |
 | Initial Agent Health | 5.0 |
