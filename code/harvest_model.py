@@ -6,9 +6,11 @@ class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
     def __init__(self, seed, num_agents=4, num_berries=15, width=10, height=10):
         super().__init__(seed=seed)
+        self.width = width
+        self.height = height
 
         self.grid = OrthogonalVonNeumannGrid(
-            [width, height],
+            [self.width, self.height],
             torus=False,
             random=self.random
         )
@@ -36,10 +38,6 @@ class HarvestModel(mesa.Model):
         self.berries.clear()
 
         for _ in range(self.num_berries):
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
+            berry_cell = self.grid.all_cells.select_random_cell()
+            self.berries.add(berry_cell)
 
-            self.berries.add((x, y))
-
-    def get_berry_from_coord(self, cell):
-        return self.berries.__contains__(cell)

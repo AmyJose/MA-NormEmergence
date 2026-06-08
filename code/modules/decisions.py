@@ -1,7 +1,8 @@
 class DecisionModule:
-    def __init__(self, id):
-        self.agent_id = id
+    def __init__(self, agent, actions):
+        self.agent= agent
+        self.actions = actions
 
     def choose_action(self):
         # keep as move for now!
-        return "move"
+        return self.actions[0]

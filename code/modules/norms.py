@@ -1,14 +1,6 @@
-from dataclasses import dataclass
-from collections import Counter
-
-@dataclass(frozen=True)
-class Behaviour:
-    pre : tuple
-    cons : str
-
 class NormsModule:
-    def __init__(self, id):
-        self.agent_id = id
+    def __init__(self, agent):
+        self.agent = agent
         self.behaviour_base = {}
 
         self.low_berries_threshold = 1
@@ -40,7 +32,7 @@ class NormsModule:
         return pre
     
     def get_cons(self, action):
-        cons = "THEN, "
+        cons = "THEN,"
         if action == "north" or action == "east" or action == "south" or action == "west":
             return cons + "move"
         elif "throw" in action:
