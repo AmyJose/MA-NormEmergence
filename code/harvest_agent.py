@@ -23,6 +23,8 @@ class HarvestAgent(CellAgent):
         self.moving_module = MovingModule(self)
 
     def step(self):
+        if self.health <= 0:
+            return
         action = self.decision_module.choose_action()
 
         self.perform_transition(action)
@@ -57,6 +59,8 @@ class HarvestAgent(CellAgent):
     
     def _update_attributes(self):
         self.health -= self.health_decay
+        if self.health < 0:
+            self.health = 0
 
     def _move(self):
         berry_found, new_cell = self.moving_module.move_towards_nearest_berry()

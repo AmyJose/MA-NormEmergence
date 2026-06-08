@@ -1,6 +1,7 @@
 import mesa
 from mesa.discrete_space import OrthogonalVonNeumannGrid
 from harvest_agent import HarvestAgent
+import pandas as pd
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
@@ -106,3 +107,18 @@ class HarvestModel(mesa.Model):
                         "adoption_rate": adoption_rate
                     }
                 )
+
+    def write_emerged_norms(self, filename="emerged_norms.csv"):
+        rows = []
+
+        for behaviour, stats in self.emerged_norms.items():
+
+            rows.append({
+                "behaviour": behaviour,
+                "first_seen": stats["first_seen"],
+                "last_seen": stats["last_seen"],
+                "times_emerged": stats["times_emerged"],
+                "max_adoption": stats["max_adoption"],
+            })
+
+        pd.DataFrame(rows).to_csv(filename, index=False)

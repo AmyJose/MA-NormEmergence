@@ -7,7 +7,7 @@ class DecisionModule:
             worst_off_agent = self._get_worst_off_other_agent()
 
             if worst_off_agent is not None:
-                if worst_off_agent.health < 0.4 and self.agent.health > 0.5:
+                if worst_off_agent.health < self.agent.health:
                     return f"throw_{worst_off_agent.id}"
 
         if self.agent.health < 0.5 and self.agent.berries > 0:
