@@ -34,12 +34,12 @@ class HarvestAgent(CellAgent):
         self.perform_transition(action)
     
     def perform_transition(self, action):
-        pre = self.observe()
+        observation = self.observe()
+
+        pre = self.norms_module.get_pre(observation)
 
         self._perform_action(action)
-
         self._forage()
-
         self._update_attributes()
 
         norm_action = "throw" if action.startswith("throw_") else action
