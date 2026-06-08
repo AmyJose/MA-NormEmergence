@@ -50,4 +50,4 @@ class NormsModule:
         else:
             self.behaviour_base[current_norm] = {"count": 1}
 
-        print(self.behaviour_base)
+        #print(self.behaviour_base)

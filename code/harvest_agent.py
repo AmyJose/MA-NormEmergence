@@ -18,7 +18,7 @@ class HarvestAgent(CellAgent):
         self.health_decay = 0.1
         self.berry_health_payoff = 0.6
 
-        self.norms_module = NormsModule(id)
+        self.norms_module = NormsModule(self)
         self.decision_module = DecisionModule(self, self.actions)
         self.moving_module = MovingModule(self)
 
@@ -61,5 +61,5 @@ class HarvestAgent(CellAgent):
         if self.berries > 0:
             self.health += self.berry_health_payoff
             self.berries -= 1
-            print(f"agent {self.id} eating")
+            #print(f"agent {self.id} eating")
 

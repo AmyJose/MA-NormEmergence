@@ -30,9 +30,17 @@ class HarvestModel(mesa.Model):
 
             self.harvest_agents.append(agent)
         
+        self.emerged_norms = {}
     
     def step(self):
         self.agents.shuffle_do("step")
+
+        emerged_norms = self.check_emergent_norms()
+
+        if emerged_norms:
+            print("Emerged norms:")
+            for behaviour, adoption_rate in emerged_norms:
+                print(f"behaviour={behaviour} adoption={adoption_rate:.2f}")
 
     def spawn_berries(self):
         self.berries.clear()
@@ -40,4 +48,26 @@ class HarvestModel(mesa.Model):
         for _ in range(self.num_berries):
             berry_cell = self.grid.all_cells.select_random_cell()
             self.berries.add(berry_cell)
+
+    def check_emergent_norms(self, threshold=0.9, min_uses=1):
+        all_behaviours = set()
+
+        for agent in self.harvest_agents:
+            all_behaviours.update(agent.norms_module.behaviour_base.keys())
+
+        emerged_norms = []
+
+        for behaviour in all_behaviours:
+            adopters = sum(
+                1
+                for agent in self.harvest_agents
+                if agent.norms_module.behaviour_base.get(behaviour, {}).get("count", 0) >= min_uses
+            )
+
+            adoption_rate = adopters / len(self.harvest_agents)
+
+            if adoption_rate >= threshold:
+                emerged_norms.append((behaviour, adoption_rate))
+
+        return emerged_norms
 
