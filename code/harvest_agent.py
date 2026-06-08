@@ -14,6 +14,11 @@ class HarvestAgent(CellAgent):
 
         self.health = 5.0
         self.berries = 0
+
+        self.berries_consumed = 0
+        self.berries_thrown = 0
+        self.current_action = None
+
         self.actions = self._generate_actions()
 
         self.health_decay = 0.01
@@ -41,6 +46,7 @@ class HarvestAgent(CellAgent):
 
         self._forage()
         self._update_attributes()
+        self.current_action = executed_action
 
         self.norms_module.update_behaviour_base(pre, executed_action)
 
@@ -92,6 +98,7 @@ class HarvestAgent(CellAgent):
         if self.berries > 0:
             self.health += self.berry_health_payoff
             self.berries -= 1
+            self.berries_consumed += 1
             self.model.spawn_one_berry()
             return True
         return False
@@ -108,6 +115,7 @@ class HarvestAgent(CellAgent):
             return False
         
         self.berries -= 1
+        self.berries_thrown += 1
         target.berries += 1
         return True
 
