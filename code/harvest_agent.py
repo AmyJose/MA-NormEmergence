@@ -16,6 +16,7 @@ class HarvestAgent(CellAgent):
         self.actions = self._generate_actions()
 
         self.health_decay = 0.1
+        self.berry_health_payoff = 0.6
 
         self.norms_module = NormsModule(id)
         self.decision_module = DecisionModule(self, self.actions)
@@ -41,6 +42,8 @@ class HarvestAgent(CellAgent):
     def _perform_action(self, action):
         if action == "move":
             self._move()
+        elif action == "eat":
+            self._eat()
     
     def _update_attributes(self):
         self.health -= self.health_decay
@@ -53,4 +56,10 @@ class HarvestAgent(CellAgent):
 
         if new_cell != self.cell:
             self.move_to(new_cell)
-        
+
+    def _eat(self):
+        if self.berries > 0:
+            self.health += self.berry_health_payoff
+            self.berries -= 1
+            print(f"agent {self.id} eating")
+

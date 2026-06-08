@@ -3,6 +3,14 @@ class DecisionModule:
         self.agent= agent
         self.actions = actions
 
+        self.eat_threshold = 0.5
+        
+
     def choose_action(self):
-        # keep as move for now!
-        return self.actions[0]
+        can_eat = self.agent.berries > 0
+        hungry = self.agent.health < self.eat_threshold
+
+        if hungry and can_eat:
+            return "eat"
+
+        return "move"

@@ -2,6 +2,5 @@ from harvest_model import HarvestModel
 
 model = HarvestModel(seed=None)
 
-model.step()
-model.step()
-model.step()
+for _ in range(10):
+    model.step()
