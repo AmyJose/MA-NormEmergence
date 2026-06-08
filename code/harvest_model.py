@@ -37,10 +37,7 @@ class HarvestModel(mesa.Model):
 
         emerged_norms = self.check_emergent_norms()
 
-        if emerged_norms:
-            print("Emerged norms:")
-            for behaviour, adoption_rate in emerged_norms:
-                print(f"behaviour={behaviour} adoption={adoption_rate:.2f}")
+        self.update_emerged_norms(emerged_norms)
 
     def spawn_berries(self):
         self.berries.clear()
@@ -70,4 +67,36 @@ class HarvestModel(mesa.Model):
                 emerged_norms.append((behaviour, adoption_rate))
 
         return emerged_norms
+    
+    def update_emerged_norms(self, emerged_norms):
+        for behaviour, adoption_rate in emerged_norms:
+            #if first time were seeing this norm:
+            if behaviour not in self.emerged_norms:
+                self.emerged_norms[behaviour] = {
+                    "first_seen": self.steps,
+                    "last_seen": self.steps,
+                    "times_emerged": 1,
+                    "max_adoption": adoption_rate,
+                    "history":[
+                        {
+                            "step": self.steps,
+                            "adoption_rate": adoption_rate
+                        }
+                    ]
+                }
+            # we've seen the norm before
+            else:
+                norm = self.emerged_norms[behaviour]
+                norm["last_seen"] = self.steps
+                norm["times_emerged"] += 1
 
+                norm["max_adoption"] = max(
+                    norm["max_adoption"],
+                    adoption_rate
+                )
+                norm["history"].append(
+                    {
+                        "step" : self.steps,
+                        "adoption_rate": adoption_rate
+                    }
+                )
