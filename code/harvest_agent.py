@@ -12,12 +12,13 @@ class HarvestAgent(CellAgent):
         self.id = id
         self.dead = False
 
-        self.health = 0.8
+        self.health = 5.0
         self.berries = 0
         self.actions = self._generate_actions()
 
-        self.health_decay = 0.1
-        self.berry_health_payoff = 0.6
+        self.health_decay = 0.01
+        self.berry_health_payoff = 0.1
+        self.throw_berry_threshold = 0.6
 
         self.norms_module = NormsModule(self)
         self.decision_module = DecisionModule(self)
@@ -31,21 +32,34 @@ class HarvestAgent(CellAgent):
         self.perform_transition(action)
     
     def perform_transition(self, action):
-        pre = self.norms_module.get_pre(self.berries, self.health)
+        pre = self.observe()
 
         self._perform_action(action)
+
+        self._forage()
 
         self._update_attributes()
 
         norm_action = "throw" if action.startswith("throw_") else action
         self.norms_module.update_behaviour_base(pre, norm_action)
 
+    def get_wellbeing(self):
+        return (self.health + (self.berries * self.berry_health_payoff)) / self.health_decay
+    
+    def observe(self):
+        return {
+            "health" : self.health,
+            "berries" : self.berries,
+            "distance_to_nearest_berry" : self.moving_module.distance_to_berry(),
+            "society_wellbeing" : self.model.get_society_wellbeing()
+        }
+
     def _generate_actions(self):
         actions = ["move", "eat"]
 
-        for other_agents in self.model.harvest_agents:
-            if other_agents.id != self.id:
-                actions.append(f"throw_{other_agents.id}")
+        for agent_id in range(self.model.num_agents):
+            if agent_id != self.id:
+                actions.append(f"throw_{agent_id}")
 
         return actions
     
@@ -64,6 +78,11 @@ class HarvestAgent(CellAgent):
             self.health = 0
             self.dead = True
 
+    def _forage(self):
+        if self.cell in self.model.berries:
+            self.model.berries.remove(self.cell)
+            self.berries += 1
+
     def _move(self):
         berry_found, new_cell = self.moving_module.move_towards_nearest_berry()
         
@@ -77,17 +96,20 @@ class HarvestAgent(CellAgent):
         if self.berries > 0:
             self.health += self.berry_health_payoff
             self.berries -= 1
+            self.model.spawn_one_berry()
 
     def _throw(self, target_id):
         if self.berries <= 0:
             return False
-        
+        if self.health < self.throw_berry_threshold:
+            return False
+
         target = self.model.get_agent_by_id(target_id)
 
         if target is None or target.dead:
             return False
         
         self.berries -= 1
-        target.health += self.berry_health_payoff
+        target.berries += 1
         return True
 

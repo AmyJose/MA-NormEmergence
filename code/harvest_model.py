@@ -47,11 +47,22 @@ class HarvestModel(mesa.Model):
             berry_cell = self.grid.all_cells.select_random_cell()
             self.berries.add(berry_cell)
 
+    def spawn_one_berry(self):
+        berry_cell = self.grid.all_cells.select_random_cell()
+        self.berries.add(berry_cell)
+
     def get_agent_by_id(self, agent_id):
         for agent in self.harvest_agents:
             if agent.id == agent_id:
                 return agent
         return None
+    
+    def get_society_wellbeing(self):
+        return [
+            agent.get_wellbeing()
+            for agent in self.harvest_agents
+            if not agent.dead
+        ]
 
     def check_emergent_norms(self, threshold=0.9, min_uses=1):
         all_behaviours = set()
