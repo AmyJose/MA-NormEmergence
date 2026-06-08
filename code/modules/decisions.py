@@ -1,16 +1,28 @@
 class DecisionModule:
-    def __init__(self, agent, actions):
-        self.agent= agent
-        self.actions = actions
-
-        self.eat_threshold = 0.5
-        
+    def __init__(self, agent):
+        self.agent = agent
 
     def choose_action(self):
-        can_eat = self.agent.berries > 0
-        hungry = self.agent.health < self.eat_threshold
+        if self.agent.berries > 0:
+            worst_off_agent = self._get_worst_off_other_agent()
 
-        if hungry and can_eat:
+            if worst_off_agent is not None:
+                if worst_off_agent.health < 0.4 and self.agent.health > 0.5:
+                    return f"throw_{worst_off_agent.id}"
+
+        if self.agent.health < 0.5 and self.agent.berries > 0:
             return "eat"
 
         return "move"
+
+    def _get_worst_off_other_agent(self):
+        others = [
+            agent
+            for agent in self.agent.model.harvest_agents
+            if agent.id != self.agent.id and agent.health > 0
+        ]
+
+        if not others:
+            return None
+
+        return min(others, key=lambda agent: agent.health)
