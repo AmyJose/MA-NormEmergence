@@ -19,7 +19,7 @@ class DecisionModule:
         others = [
             agent
             for agent in self.agent.model.harvest_agents
-            if agent.id != self.agent.id and agent.health > 0
+            if agent.id != self.agent.id and not agent.dead
         ]
 
         if not others:

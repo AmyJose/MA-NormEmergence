@@ -10,6 +10,7 @@ class HarvestAgent(CellAgent):
         super().__init__(model)
 
         self.id = id
+        self.dead = False
 
         self.health = 0.8
         self.berries = 0
@@ -23,7 +24,7 @@ class HarvestAgent(CellAgent):
         self.moving_module = MovingModule(self)
 
     def step(self):
-        if self.health <= 0:
+        if self.dead:
             return
         action = self.decision_module.choose_action()
 
@@ -61,6 +62,7 @@ class HarvestAgent(CellAgent):
         self.health -= self.health_decay
         if self.health < 0:
             self.health = 0
+            self.dead = True
 
     def _move(self):
         berry_found, new_cell = self.moving_module.move_towards_nearest_berry()
@@ -82,12 +84,10 @@ class HarvestAgent(CellAgent):
         
         target = self.model.get_agent_by_id(target_id)
 
-        if target is None:
-            return False
-        if target.health <= 0:
+        if target is None or target.dead:
             return False
         
         self.berries -= 1
-        target.health += 0.6
+        target.health += self.berry_health_payoff
         return True
 
