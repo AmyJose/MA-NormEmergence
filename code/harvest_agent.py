@@ -28,22 +28,21 @@ class HarvestAgent(CellAgent):
         if self.dead:
             return
         
-        observation = self.observe
+        observation = self.observe()
         action = self.decision_module.choose_action(observation)
 
         self.perform_transition(action)
     
     def perform_transition(self, action):
         observation = self.observe()
-
         pre = self.norms_module.get_pre(observation)
 
-        self._perform_action(action)
+        executed_action = self._perform_action(action)
+
         self._forage()
         self._update_attributes()
 
-        norm_action = "throw" if action.startswith("throw_") else action
-        self.norms_module.update_behaviour_base(pre, norm_action)
+        self.norms_module.update_behaviour_base(pre, executed_action)
 
     def get_wellbeing(self):
         return (self.health + (self.berries * self.berry_health_payoff)) / self.health_decay
@@ -67,12 +66,16 @@ class HarvestAgent(CellAgent):
     
     def _perform_action(self, action):
         if action in ["north", "south", "east", "west"]:
-            self.moving_module.move(action)
-        elif action == "eat":
-            self._eat()
-        elif action.startswith("throw_"):
+            moved = self.moving_module.move(action)
+            return "move" if moved else "wait"
+        if action == "eat":
+            ate = self._eat()
+            return "eat" if ate else "wait"
+        if action.startswith("throw_"):
             target_id = int(action.split("_")[1])
-            self._throw(target_id)
+            threw = self._throw(target_id)
+            return "throw" if threw else "wait"
+        return "wait"
     
     def _update_attributes(self):
         self.health -= self.health_decay
@@ -90,6 +93,8 @@ class HarvestAgent(CellAgent):
             self.health += self.berry_health_payoff
             self.berries -= 1
             self.model.spawn_one_berry()
+            return True
+        return False
 
     def _throw(self, target_id):
         if self.berries <= 0:

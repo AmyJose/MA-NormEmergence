@@ -1,12 +1,18 @@
 class DecisionModule:
     def __init__(self, agent):
         self.agent = agent
+        self.epsilon = 0.1
 
     def choose_action(self, observation):
         """
         Choose one action from:
         north, south, east, west, eat, throw_<agent_id>
         """
+
+        #add randomness
+        if self.agent.random.random() < self.epsilon:
+            return self.agent.random.choice(self.agent.actions)
+
         health = observation["health"]
         berries = observation["berries"]
 
