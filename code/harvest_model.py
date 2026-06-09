@@ -64,6 +64,7 @@ class HarvestModel(mesa.Model):
         if self.steps >= self.max_steps or all(agent.dead for agent in self.harvest_agents):
             self._collect_model_episode_data()
             self.write_emerged_norms()
+            self.write_behaviour_bases()
             self.episode_done = True
         
         self._collect_agent_data()
@@ -147,7 +148,7 @@ class HarvestModel(mesa.Model):
                     }
                 )
 
-    def write_emerged_norms(self, filename="emerged_norms.csv"):
+    def write_emerged_norms(self):
         rows = []
 
         for behaviour, stats in self.emerged_norms.items():
@@ -159,8 +160,23 @@ class HarvestModel(mesa.Model):
                 "times_emerged": stats["times_emerged"],
                 "max_adoption": stats["max_adoption"],
             })
+        path = Path(f"data/results/current_run/emerged_norms_{self.filepath}.csv")
+        pd.DataFrame(rows).to_csv(path, index=False)
 
-        pd.DataFrame(rows).to_csv(filename, index=False)
+    def write_behaviour_bases(self):
+        rows = []
+        for agent in self.harvest_agents:
+            for behaviour, stats in agent.norms_module.behaviour_base.items():
+                rows.append({
+                    "episode": self.episode,
+                    "agent_id": agent.id,
+                    "behaviour": behaviour,
+                    "count": stats.get("count", 0),
+                    "decision_module": type(agent.decision_module).__name__,
+                })
+
+        path = Path(f"data/results/current_run/behaviour_bases_{self.filepath}.csv")
+        pd.DataFrame(rows).to_csv(path, index=False)
 
     def _init_reporters(self, filepath="current_run"):
         os.makedirs("data/results/current_run", exist_ok=True)
