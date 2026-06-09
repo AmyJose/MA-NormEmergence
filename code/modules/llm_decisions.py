@@ -1,4 +1,4 @@
-import json
+import re
 
 class LLMDecisionModule:
     def __init__(self, llm_client, agent):
@@ -72,17 +72,24 @@ Here is an observation of the current state of society:
     def parse_action(self, response: str):
         response = response.strip().upper()
 
-        if response not in self.valid_actions:
+        match = re.search(r"\b(MOVE|EAT|THROW_\d+)\b", response)
+
+        if not match:
             return None
 
-        if response == "MOVE":
+        action = match.group(1)
+
+        if action not in self.valid_actions:
+            return None
+
+        if action == "MOVE":
             return self.agent.moving_module.direction_towards_nearest_berry()
 
-        if response == "EAT":
+        if action == "EAT":
             return "eat"
 
-        if response.startswith("THROW_"):
-            return response.lower()
+        if action.startswith("THROW_"):
+            return action.lower()
 
         return None
     
