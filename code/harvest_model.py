@@ -4,7 +4,7 @@ from harvest_agent import HarvestAgent
 import pandas as pd
 import os
 from pathlib import Path
-from llm_client import LLMClient
+from llm_client import HuggingFaceClient, OllamaClient
 from modules.llm_decisions import LLMDecisionModule
 from modules.decisions import RuleBasedDecisionModule
 
@@ -27,7 +27,7 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
-        llm_client = LLMClient()
+        llm_client = HuggingFaceClient()
         
         self.harvest_agents = []
         for i in range(self.num_agents):

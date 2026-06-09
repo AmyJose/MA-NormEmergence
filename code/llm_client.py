@@ -1,10 +1,11 @@
 import os
+import requests
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
 load_dotenv()
 
-class LLMClient:
+class HuggingFaceClient:
     def __init__(self):
         self.client = InferenceClient(
             api_key=os.getenv("HF_TOKEN")
@@ -22,3 +23,7 @@ class LLMClient:
         )
         
         return response.choices[0].message.content.strip()
+    
+class OllamaClient:
+    def __init__(self):
+        pass
