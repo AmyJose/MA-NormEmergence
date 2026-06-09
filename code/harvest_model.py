@@ -46,7 +46,7 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
-        self.max_steps = 400
+        self.max_steps = 10
         self.episode_done = False
 
         self.episode = 1

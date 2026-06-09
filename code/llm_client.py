@@ -12,12 +12,10 @@ class HuggingFaceClient:
         )
         self.model = "Qwen/Qwen2.5-7B-Instruct"
     
-    def generate(self, prompt : str) -> str:
+    def chat(self, messages):
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
+            messages=messages,
             max_tokens=20,
             temperature=0.0
         )
@@ -25,21 +23,25 @@ class HuggingFaceClient:
         return response.choices[0].message.content.strip()
     
 class OllamaClient:
-    def __init__(self, model="qwen3:8b"):
+    def __init__(self, model="qwen3:8b", temp = 0.0):
         self.model = model
-        self.url = "http://localhost:11434/api/generate"
+        self.url = "http://localhost:11434/api/chat"
+        self.temperature = temp
     
-    def generate(self, prompt : str) -> str:
+    def chat(self, messages):
         response = requests.post(
             self.url,
             json={
                 "model": self.model,
-                "prompt": prompt,
-                "stream": False
+                "messages": messages,
+                "stream": False,
+                "options": {
+                    "temperature" : self.temperature
+                },
             },
-            timeout=120
+            timeout=180
         )
 
         response.raise_for_status()
 
-        return response.json()["response"].strip()
+        return response.json()["message"]["content"].strip()
