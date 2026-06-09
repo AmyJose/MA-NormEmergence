@@ -1,9 +1,14 @@
-VALID_ACTIONS = ["MOVE", "EAT", "THROW_1", "THROW_2", "THROW_3"]
-
 class LLMDecisionModule:
     def __init__(self, llm_client, agent):
         self.llm_client = llm_client
         self.agent = agent
+
+        valid_actions = ["MOVE", "EAT"]
+        for agent_id in range(self.agent.model.num_agents):
+            if agent_id != self.agent.id:
+                valid_actions.append(f"THROW_{agent_id}")
+        
+        self.valid_actions = valid_actions
 
     def decide(self, observation: dict) -> str:
         prompt = self.build_prompt(observation)
@@ -37,7 +42,7 @@ Wellbeing is represented by the following function:
     wellbeing = (health + (berries * {self.agent.berry_health_payoff}))/{self.agent.health_decay}. 
 Using the observation and information provided, 
 choose ONE action. Do not give any explanation, 
-just return MOVE, EAT, THROW_1, THROW_2 or THROW_3
+just return {", ".join(self.valid_actions)}
 
 """
     
