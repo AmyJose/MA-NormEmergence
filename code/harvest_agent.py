@@ -1,5 +1,4 @@
 from mesa.discrete_space import CellAgent
-from modules.decisions import DecisionModule
 from modules.norms import NormsModule
 from modules.moving import MovingModule
 
@@ -12,7 +11,7 @@ class HarvestAgent(CellAgent):
         self.id = id
         self.dead = False
 
-        self.health = 5.0
+        self.health = 2.0
         self.berries = 0
 
         self.berries_consumed = 0
@@ -21,12 +20,13 @@ class HarvestAgent(CellAgent):
 
         self.actions = self._generate_actions()
 
-        self.health_decay = 0.01
-        self.berry_health_payoff = 0.1
+        self.health_decay = 0.03
+        self.berry_health_payoff = 0.2
         self.throw_berry_threshold = 0.6
-
+    
+    def assign_modules(self, decision_module):
         self.norms_module = NormsModule(self)
-        self.decision_module = DecisionModule(self)
+        self.decision_module = decision_module
         self.moving_module = MovingModule(self)
 
     def step(self):
@@ -34,7 +34,7 @@ class HarvestAgent(CellAgent):
             return
         
         observation = self.observe()
-        action = self.decision_module.choose_action(observation)
+        action = self.decision_module.decide(observation)
 
         self.perform_transition(action)
     

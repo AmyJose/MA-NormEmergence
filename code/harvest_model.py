@@ -4,10 +4,13 @@ from harvest_agent import HarvestAgent
 import pandas as pd
 import os
 from pathlib import Path
+from llm_client import LLMClient
+from modules.llm_decisions import LLMDecisionModule
+from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, seed, num_agents=4, num_berries=12, width=8, height=4):
+    def __init__(self, seed, num_agents=4, num_berries=8, width=8, height=4):
         super().__init__(seed=seed)
         self.width = width
         self.height = height
@@ -24,9 +27,18 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
+        llm_client = LLMClient()
+        
         self.harvest_agents = []
         for i in range(self.num_agents):
-            agent = HarvestAgent(self, i)
+            agent = HarvestAgent(model=self, id=i)
+
+            if i == 0:
+                decision_module = LLMDecisionModule(llm_client, agent)
+            else:
+                decision_module = RuleBasedDecisionModule(agent)
+            
+            agent.assign_modules(decision_module=decision_module)
 
             cell = self.random.choice(list(self.grid.all_cells.cells))
             agent.move_to(cell)
@@ -34,7 +46,7 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
-        self.max_steps = 500
+        self.max_steps = 400
         self.episode_done = False
 
         self.episode = 1

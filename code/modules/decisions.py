@@ -1,7 +1,12 @@
-class DecisionModule:
+class RuleBasedDecisionModule:
     def __init__(self, agent):
         self.agent = agent
         self.epsilon = 0.1
+        self.critical_health_threshold = 0.8
+        self.low_health_threshold = 1.2
+
+    def decide(self, observation:dict) -> str:
+        return self.choose_action(observation)
 
     def choose_action(self, observation):
         """
@@ -17,8 +22,11 @@ class DecisionModule:
         berries = observation["berries"]
 
         #if carrying berries and health is low, eat
-        #CHECK THIS THRESHOLD
-        if berries > 0 and health < 2.5:
+        if berries > 0 and health < self.critical_health_threshold:
+            return "eat"
+        
+        # 2. If low-ish health, eat rather than risk throwing
+        if berries > 0 and health < self.low_health_threshold:
             return "eat"
         
         # if carrying berries and someone else is worse off, throw
