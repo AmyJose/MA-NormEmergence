@@ -4,6 +4,9 @@ from harvest_agent import HarvestAgent
 import pandas as pd
 import os
 from pathlib import Path
+from llm_client import LLMClient
+from modules.llm_decisions import LLMDecisionModule
+from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
@@ -24,9 +27,16 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
+        llm_client = LLMClient()
+        
         self.harvest_agents = []
         for i in range(self.num_agents):
-            agent = HarvestAgent(self, i)
+            if i == 0:
+                decision_module = LLMDecisionModule(llm_client)
+            else:
+                decision_module = RuleBasedDecisionModule()
+
+            agent = HarvestAgent(model=self, id=i, decision_module=decision_module)
 
             cell = self.random.choice(list(self.grid.all_cells.cells))
             agent.move_to(cell)

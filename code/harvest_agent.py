@@ -1,12 +1,11 @@
 from mesa.discrete_space import CellAgent
-from modules.decisions import DecisionModule
 from modules.norms import NormsModule
 from modules.moving import MovingModule
 
 class HarvestAgent(CellAgent):
     """Agent in the model environment"""
 
-    def __init__(self, model, id):
+    def __init__(self, model, id, decision_module):
         super().__init__(model)
 
         self.id = id
@@ -26,7 +25,7 @@ class HarvestAgent(CellAgent):
         self.throw_berry_threshold = 0.6
 
         self.norms_module = NormsModule(self)
-        self.decision_module = DecisionModule(self)
+        self.decision_module = decision_module
         self.moving_module = MovingModule(self)
 
     def step(self):
@@ -34,7 +33,7 @@ class HarvestAgent(CellAgent):
             return
         
         observation = self.observe()
-        action = self.decision_module.choose_action(observation)
+        action = self.decision_module.decide(observation)
 
         self.perform_transition(action)
     
