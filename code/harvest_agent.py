@@ -12,7 +12,7 @@ class HarvestAgent(CellAgent):
         self.id = id
         self.dead = False
 
-        self.health = 5.0
+        self.health = 2.0
         self.berries = 0
 
         self.berries_consumed = 0
@@ -21,8 +21,8 @@ class HarvestAgent(CellAgent):
 
         self.actions = self._generate_actions()
 
-        self.health_decay = 0.01
-        self.berry_health_payoff = 0.1
+        self.health_decay = 0.03
+        self.berry_health_payoff = 0.2
         self.throw_berry_threshold = 0.6
 
         self.norms_module = NormsModule(self)

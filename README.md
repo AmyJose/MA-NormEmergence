@@ -39,12 +39,12 @@ Health decreases over time. Agents that reach zero health are considered dead an
 |------------|---------|
 | Grid Size | 8 x 4 |
 | Initial Agents | 4 |
-| Initial Berries | 12 |
-| Initial Agent Health | 5.0 |
-| Health Decay per Step | 0.01 |
-| Health Gain per Berry Eaten | 0.1 |
+| Initial Berries | 8 |
+| Initial Agent Health | 2.0 |
+| Health Decay per Step | 0.03 |
+| Health Gain per Berry Eaten | 0.2 |
 | Throw Threshold | 0.6 |
-| Maximum Episode Length | 500 steps |
+| Maximum Episode Length | 200 steps |
 | Agent Activation | Random asynchronous order |
 | Berry Regrowth | One berry spawned after each berry is eaten |
 
@@ -79,9 +79,9 @@ wellbeing = (health + (berries × berry_health_payoff))
 
 | State | Range |
 |---------|---------|
-| Low Health | < 2.5 |
-| Medium Health | 2.5 ≤ health < 4.0 |
-| High Health | ≥ 4.0 |
+| Low Health | < 0.8 |
+| Medium Health | 0.8 ≤ health < 1.5 |
+| High Health | ≥ 1.5 |
 
 ### Berry States
 

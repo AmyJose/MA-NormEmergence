@@ -5,10 +5,10 @@ class NormsModule:
 
         self.low_berries_threshold = 1
         self.high_berries_threshold = 3
-        self.low_health_threshold = 2.5
-        self.high_health_threshold = 4.0
-        self.low_wellbeing_threshold = 250
-        self.high_wellbeing_threshold = 400
+        self.low_health_threshold = 0.8
+        self.high_health_threshold = 1.5
+        self.low_wellbeing_threshold = 30
+        self.high_wellbeing_threshold = 55
 
     def get_pre(self, observation):
         berries = observation["berries"]

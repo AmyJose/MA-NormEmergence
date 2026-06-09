@@ -7,7 +7,7 @@ from pathlib import Path
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, seed, num_agents=4, num_berries=12, width=8, height=4):
+    def __init__(self, seed, num_agents=4, num_berries=8, width=8, height=4):
         super().__init__(seed=seed)
         self.width = width
         self.height = height
@@ -34,7 +34,7 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
-        self.max_steps = 500
+        self.max_steps = 400
         self.episode_done = False
 
         self.episode = 1
