@@ -2,6 +2,7 @@ from harvest_model import HarvestModel
 
 model = HarvestModel(seed=None)
 
-for _ in range(100):
+for i in range(100):
     model.step()
+    print(f"Completed step {i}")
 

@@ -27,7 +27,7 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
-        llm_client = HuggingFaceClient()
+        llm_client = OllamaClient()
         
         self.harvest_agents = []
         for i in range(self.num_agents):
