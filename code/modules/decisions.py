@@ -17,7 +17,6 @@ class DecisionModule:
         berries = observation["berries"]
 
         #if carrying berries and health is low, eat
-        #CHECK THIS THRESHOLD
         if berries > 0 and health < 2.5:
             return "eat"
         
