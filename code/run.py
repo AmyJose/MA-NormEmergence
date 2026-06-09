@@ -1,8 +1,8 @@
 from harvest_model import HarvestModel
 
-model = HarvestModel(seed=None)
+model = HarvestModel(seed=42)
 
-for i in range(10):
+for i in range(50):
     model.step()
     print(f"Completed step {i}")
 

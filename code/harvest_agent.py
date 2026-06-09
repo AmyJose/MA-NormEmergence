@@ -16,6 +16,7 @@ class HarvestAgent(CellAgent):
 
         self.berries_consumed = 0
         self.berries_thrown = 0
+        self.berries_foraged = 0
         self.current_action = None
 
         self.actions = self._generate_actions()
@@ -93,6 +94,7 @@ class HarvestAgent(CellAgent):
         if self.cell in self.model.berries:
             self.model.berries.remove(self.cell)
             self.berries += 1
+            self.berries_foraged += 1
 
     def _eat(self):
         if self.berries > 0:

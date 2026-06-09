@@ -17,6 +17,7 @@ class LLMDecisionModule:
                 "role":"system",
                 "content": f"""
 You are a harvest agent in an allotment. You are agent {self.agent.id}. 
+You are in the allotment with agent 1, agent 2 and agent 3.
 
 Each turn you must choose one of the following options: 
     move towards the nearest berry (return MOVE), 
@@ -30,8 +31,24 @@ Wellbeing is represented by the following function:
 
 You will recieve an observation each turn to help you with your decision.
 Using the observation and information provided, choose ONE action. 
-Do not give any explanation, 
-just return {", ".join(self.valid_actions)}
+
+You must return exactly one action token.
+
+Valid actions:
+{", ".join(self.valid_actions)}
+
+Return one of these strings and nothing else.
+
+Valid responses:
+{chr(10).join(self.valid_actions)}
+
+Invalid responses:
+"The best action is MOVE"
+"Answer: MOVE"
+"$$\boxed{{MOVE}}$$"
+
+If you include explanation, punctuation, 
+markdown or extra text, your response is invalid.
 """
             }
         ]
@@ -66,7 +83,13 @@ Here is an observation of the current state of society:
     your current health: {obs["health"]},
     number of berries in your bag: {obs["berries"]}, 
     distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
-    society wellbeing : {obs["society_wellbeing"]}. 
+    society wellbeing : {obs["society_wellbeing"]}.
+
+Valid actions:
+{", ".join(self.valid_actions)}
+
+Return one of these strings and nothing else.
+
 """
     
     def parse_action(self, response: str):

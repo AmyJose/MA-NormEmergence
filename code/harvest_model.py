@@ -27,6 +27,7 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
+        #llm_client = HuggingFaceClient()
         llm_client = OllamaClient()
         
         self.harvest_agents = []
@@ -46,7 +47,7 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
-        self.max_steps = 10
+        self.max_steps = 50
         self.episode_done = False
 
         self.episode = 1
@@ -189,6 +190,7 @@ class HarvestModel(mesa.Model):
             "step": [],
             "berries": [],
             "berries_consumed": [],
+            "berries_foraged": [],
             "berries_thrown": [],
             "health": [],
             "wellbeing": [],
@@ -235,6 +237,7 @@ class HarvestModel(mesa.Model):
                 "step": self.steps,
                 "berries": agent.berries,
                 "berries_consumed": agent.berries_consumed,
+                "berries_foraged": agent.berries_foraged,
                 "berries_thrown": agent.berries_thrown,
                 "health": agent.health,
                 "wellbeing": agent.get_wellbeing(),
