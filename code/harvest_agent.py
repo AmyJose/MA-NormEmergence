@@ -5,7 +5,7 @@ from modules.moving import MovingModule
 class HarvestAgent(CellAgent):
     """Agent in the model environment"""
 
-    def __init__(self, model, id, decision_module):
+    def __init__(self, model, id):
         super().__init__(model)
 
         self.id = id
@@ -23,7 +23,8 @@ class HarvestAgent(CellAgent):
         self.health_decay = 0.03
         self.berry_health_payoff = 0.2
         self.throw_berry_threshold = 0.6
-
+    
+    def assign_modules(self, decision_module):
         self.norms_module = NormsModule(self)
         self.decision_module = decision_module
         self.moving_module = MovingModule(self)

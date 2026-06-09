@@ -25,7 +25,7 @@ def llm_test():
 
 model = HarvestModel(seed=None)
 
-for _ in range(400):
+for _ in range(100):
     model.step()
 
 #llm_test()

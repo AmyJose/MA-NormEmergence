@@ -31,12 +31,14 @@ class HarvestModel(mesa.Model):
         
         self.harvest_agents = []
         for i in range(self.num_agents):
-            if i == 0:
-                decision_module = LLMDecisionModule(llm_client)
-            else:
-                decision_module = RuleBasedDecisionModule()
+            agent = HarvestAgent(model=self, id=i)
 
-            agent = HarvestAgent(model=self, id=i, decision_module=decision_module)
+            if i == 0:
+                decision_module = LLMDecisionModule(llm_client, agent)
+            else:
+                decision_module = RuleBasedDecisionModule(agent)
+            
+            agent.assign_modules(decision_module=decision_module)
 
             cell = self.random.choice(list(self.grid.all_cells.cells))
             agent.move_to(cell)

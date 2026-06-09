@@ -12,7 +12,7 @@ class LLMDecisionModule:
 
     def decide(self, observation: dict) -> str:
         prompt = self.build_prompt(observation)
-        response = self.llm_client.ask(prompt)
+        response = self.llm_client.generate(prompt)
 
         action = self.parse_action(response)
 
