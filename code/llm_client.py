@@ -17,7 +17,8 @@ class LLMClient:
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=50,
+            max_tokens=20,
+            temperature=0.0
         )
         
         return response.choices[0].message.content.strip()
