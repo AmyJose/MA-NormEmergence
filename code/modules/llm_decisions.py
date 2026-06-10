@@ -107,7 +107,7 @@ Return one of these strings and nothing else.
 
         return self.convert_action_token(action)
     
-    def trim_history(self, max_turns=20):
+    def trim_history(self, max_turns=8):
         system_message = self.messages[0]
 
         non_system_messages = self.messages[1:]

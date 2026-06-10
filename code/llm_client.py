@@ -39,7 +39,8 @@ class OllamaClient:
                         "messages": messages,
                         "stream": False,
                         "options": {
-                            "temperature" : self.temperature
+                            "temperature" : self.temperature,
+                            "num_predict": 5,
                         },
                     },
                     timeout=600
