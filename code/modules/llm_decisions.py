@@ -24,10 +24,13 @@ Each turn you must choose one of the following options:
     eat a berry from your bag (return EAT), or 
     throw a berry to another agent (return THROW_<agent_id>). 
 
-Everyone's health decays by {self.agent.health_decay} each timestep. 
+Everyone's health decays by {self.agent.health_decay} each timestep.
+When an agent's health reaches 0, they die and no longer exist in the allotment.
 To throw to another agent, you must have at least {self.agent.throw_berry_threshold} health. 
 Wellbeing is represented by the following function: 
     wellbeing = (health + (berries * {self.agent.berry_health_payoff}))/{self.agent.health_decay}. 
+
+Your aim is to survive as long as possible.
 
 You will recieve an observation each turn to help you with your decision.
 Using the observation and information provided, choose ONE action. 
