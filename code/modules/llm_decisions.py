@@ -73,8 +73,7 @@ markdown or extra text, your response is invalid.
         action = self.parse_action(response)
 
         if action is None:
-            print(f"[LLM WARNING] Invalid response: {response}")
-            return self.fallback_action(observation)
+            return self.get_user_action(response)
         
         return action
     
@@ -108,6 +107,35 @@ Return one of these strings and nothing else.
         if action not in self.valid_actions:
             return None
 
+        return self.convert_action_token(action)
+    
+    def trim_history(self, max_turns=20):
+        system_message = self.messages[0]
+
+        non_system_messages = self.messages[1:]
+        recent_messages = non_system_messages[-max_turns * 2:]
+
+        self.messages = [system_message] + recent_messages
+
+    def get_user_action(self, response: str) -> str:
+        print("\n[LLM WARNING] Invalid response received:")
+        print("-" * 60)
+        print(response)
+        print("-" * 60)
+
+        print("Valid actions:")
+        for action in self.valid_actions:
+            print(f"- {action}")
+
+        while True:
+            user_input = input("Enter action to use: ").strip().upper()
+
+            if user_input in self.valid_actions:
+                return self.convert_action_token(user_input)
+
+            print(f"Invalid action: {user_input}")
+
+    def convert_action_token(self, action: str):
         if action == "MOVE":
             return self.agent.moving_module.direction_towards_nearest_berry()
 
@@ -118,14 +146,3 @@ Return one of these strings and nothing else.
             return action.lower()
 
         return None
-    
-    def fallback_action(self, obs) -> str:
-        return self.agent.moving_module.direction_towards_nearest_berry()
-    
-    def trim_history(self, max_turns=20):
-        system_message = self.messages[0]
-
-        non_system_messages = self.messages[1:]
-        recent_messages = non_system_messages[-max_turns * 2:]
-
-        self.messages = [system_message] + recent_messages

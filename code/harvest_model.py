@@ -179,7 +179,7 @@ class HarvestModel(mesa.Model):
         path = Path(f"data/results/current_run/behaviour_bases_{self.filepath}.csv")
         pd.DataFrame(rows).to_csv(path, index=False)
 
-    def _init_reporters(self, filepath="current_run"):
+    def _init_reporters(self, filepath=""):
         os.makedirs("data/results/current_run", exist_ok=True)
 
         self.filepath = filepath
