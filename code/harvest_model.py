@@ -94,25 +94,57 @@ class HarvestModel(mesa.Model):
             if not agent.dead
         ]
 
-    def check_emergent_norms(self, threshold=0.9, min_uses=1):
-        all_behaviours = set()
+    def check_emergent_norms(self, adoption_threshold=0.75, dominance_threshold=0.6):
+        all_states = set()
+        agent_preferences = {}
 
         for agent in self.harvest_agents:
-            all_behaviours.update(agent.norms_module.behaviour_base.keys())
+            dominant = (
+                agent.norms_module
+                .get_dominant_behaviours(
+                    dominance_threshold
+                )
+            )
+            
+            agent_preferences[agent.id] = dominant
+
+            all_states.update(dominant.keys())
 
         emerged_norms = []
 
-        for behaviour in all_behaviours:
-            adopters = sum(
-                1
-                for agent in self.harvest_agents
-                if agent.norms_module.behaviour_base.get(behaviour, {}).get("count", 0) >= min_uses
+        for state in all_states:
+            action_counts = {}
+            
+            for agent in self.harvest_agents:
+                action = {
+                    agent_preferences
+                    .get(agent.id, {})
+                    .get(state)
+                }
+                if action is None:
+                    continue
+                action_counts[action] = (
+                    action_counts.get(action, 0) + 1
+                )
+
+            if not action_counts:
+                continue
+            
+            dominant_action = max(
+                action_counts,
+                key = action_counts.get
+            )
+            adoption_rate = (
+                action_counts[dominant_action] / len(self.harvest_agents)
             )
 
-            adoption_rate = adopters / len(self.harvest_agents)
-
-            if adoption_rate >= threshold:
-                emerged_norms.append((behaviour, adoption_rate))
+            if adoption_rate >= adoption_threshold:
+                emerged_norms.append(
+                    (
+                    f"{state},THEN,{dominant_action}",
+                    adoption_rate
+                    )
+                )
 
         return emerged_norms
     

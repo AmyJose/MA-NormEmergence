@@ -38,6 +38,39 @@ class NormsModule:
         else:
             self.behaviour_base[current_norm] = {"count": 1}
 
+    def get_dominant_behaviours(self, dominance_threshold=0.6):
+        state_actions = {}
+        for behaviour, data in self.behaviour_base.items():
+            parts = behaviour.split(",THEN,")
+            
+            if len(parts)!= 2:
+                continue
+
+            state = parts[0]
+            action = parts[1]
+
+            if state not in state_actions:
+                state_actions[state] = {}
+            
+            state_actions[state][action] = data["count"]
+
+            dominant_behaviours = {}
+
+            for state, actions in state_actions.items():
+                total = sum(actions.values())
+
+                dominant_action = max(
+                    actions,
+                    key=actions.get
+                )
+                dominance_ratio = (
+                    actions[dominant_action]
+                    /total
+                )
+                if dominance_ratio >=dominance_threshold:
+                    dominant_behaviours[state] = dominant_action
+            return dominant_behaviours
+
     def _bucket_berries(self, berries):
         if berries == 0:
             return "no berries"
