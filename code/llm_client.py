@@ -40,11 +40,12 @@ class OllamaClient:
                         "stream": False,
                         "options": {
                             "temperature" : self.temperature,
-                            "num_predict": 5,
+                            "num_predict": 5000,
                         },
                     },
                     timeout=600
                 )
+                print(response.json())
                 response.raise_for_status()
                 return response.json()["message"]["content"].strip()
             except(

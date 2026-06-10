@@ -23,10 +23,13 @@ Each turn you must choose one of the following options:
     move towards the nearest berry (return MOVE), 
     eat a berry from your bag (return EAT), or 
     throw a berry to another agent (return THROW_<agent_id>). 
+All other agents in the allotment choose one of these options each turn too.
 
 Everyone's health decays by {self.agent.health_decay} each timestep.
 When an agent's health reaches 0, they die and no longer exist in the allotment.
+Eating a berry removes 1 berry from your bag, and increases your health by {self.agent.berry_health_payoff}
 To throw to another agent, you must have at least {self.agent.throw_berry_threshold} health. 
+Throwing a berry transfers 1 berry from your bag into the bag of the recieving agent.
 Wellbeing is represented by the following function: 
     wellbeing = (health + (berries * {self.agent.berry_health_payoff}))/{self.agent.health_decay}. 
 
@@ -79,11 +82,14 @@ markdown or extra text, your response is invalid.
         return f"""
 Step: {self.agent.model.steps}
 
-Here is an observation of the current state of society: 
+Here is an observation of the current state: 
     your current health: {obs["health"]},
     number of berries in your bag: {obs["berries"]}, 
-    distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
-    society wellbeing : {obs["society_wellbeing"]}.
+    your distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
+    your wellbeing: {obs['society_wellbeing'][0]},
+    agent 1 wellbeing: {obs['society_wellbeing'][1]},
+    agent 2 wellbeing: {obs['society_wellbeing'][2]},
+    agent 3 wellbeiong : {obs['society_wellbeing'][3]}
 
 Valid actions:
 {", ".join(self.valid_actions)}
