@@ -30,8 +30,6 @@ To throw to another agent, you must have at least {self.agent.throw_berry_thresh
 Wellbeing is represented by the following function: 
     wellbeing = (health + (berries * {self.agent.berry_health_payoff}))/{self.agent.health_decay}. 
 
-Your aim is to survive as long as possible.
-
 You will recieve an observation each turn to help you with your decision.
 Using the observation and information provided, choose ONE action. 
 

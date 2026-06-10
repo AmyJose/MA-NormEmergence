@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
@@ -28,20 +29,35 @@ class OllamaClient:
         self.url = "http://localhost:11434/api/chat"
         self.temperature = temp
     
-    def chat(self, messages):
-        response = requests.post(
-            self.url,
-            json={
-                "model": self.model,
-                "messages": messages,
-                "stream": False,
-                "options": {
-                    "temperature" : self.temperature
-                },
-            },
-            timeout=180
+    def chat(self, messages, max_retries = 3):
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    self.url,
+                    json={
+                        "model": self.model,
+                        "messages": messages,
+                        "stream": False,
+                        "options": {
+                            "temperature" : self.temperature
+                        },
+                    },
+                    timeout=600
+                )
+                response.raise_for_status()
+                return response.json()["message"]["content"].strip()
+            except(
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.HTTPError,
+            ) as e:
+                print(
+                    f"[OLLAMA WARNING] Attempt "
+                    f"{attempt + 1}/{max_retries} failed: {e}"
+                )
+                if attempt<max_retries -1:
+                    time.sleep(2 ** attempt)
+
+        raise RuntimeError(
+            "Failed to get response from Ollama after retries"
         )
-
-        response.raise_for_status()
-
-        return response.json()["message"]["content"].strip()
