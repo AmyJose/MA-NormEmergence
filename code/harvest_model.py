@@ -116,15 +116,16 @@ class HarvestModel(mesa.Model):
             action_counts = {}
             
             for agent in self.harvest_agents:
-                action = {
+                action = (
                     agent_preferences
                     .get(agent.id, {})
                     .get(state)
-                }
+                )
                 if action is None:
                     continue
                 action_counts[action] = (
-                    action_counts.get(action, 0) + 1
+                    action_counts.get(action, 0)
+                    + 1
                 )
 
             if not action_counts:
@@ -132,17 +133,18 @@ class HarvestModel(mesa.Model):
             
             dominant_action = max(
                 action_counts,
-                key = action_counts.get
+                key=action_counts.get
             )
             adoption_rate = (
-                action_counts[dominant_action] / len(self.harvest_agents)
+                action_counts[dominant_action]
+                / len(self.harvest_agents)
             )
 
             if adoption_rate >= adoption_threshold:
                 emerged_norms.append(
                     (
-                    f"{state},THEN,{dominant_action}",
-                    adoption_rate
+                        f"{state},THEN,{dominant_action}",
+                        adoption_rate
                     )
                 )
 
