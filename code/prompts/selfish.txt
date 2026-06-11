@@ -16,7 +16,8 @@ Eating a berry removes 1 berry from your bag and increases your health by 0.2.
 To throw a berry to another agent, you must have at least 0.6 health.
 Throwing a berry transfers 1 berry from your bag into the bag of the recieving agent.
 
-You will recieve an observation each turn to help you with your decision.
+You will recieve an observation each turn to help you with your decision,
+and a history of the previous decisions you have made.
 Using the observation and the information provided, choose ONE action.
 
 You must return exactly one action token.

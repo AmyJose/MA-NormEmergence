@@ -3,6 +3,7 @@ from mesa.discrete_space import OrthogonalVonNeumannGrid
 from harvest_agent import HarvestAgent
 import pandas as pd
 import os
+import json
 from pathlib import Path
 from llm_client import HuggingFaceClient, OllamaClient
 from modules.llm_decisions import LLMDecisionModule
@@ -10,8 +11,8 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, seed, num_agents=4, num_berries=8, width=8, height=4):
-        super().__init__(seed=seed)
+    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline"):
+        super().__init__(rng=rng)
         self.width = width
         self.height = height
 
@@ -29,16 +30,48 @@ class HarvestModel(mesa.Model):
 
         #llm_client = HuggingFaceClient()
         llm_client = OllamaClient()
+        self.prompt_type = prompt_type
+
+        self.metadata ={
+            "rng": rng,
+            "num_agents": num_agents,
+            "num_berries": num_berries,
+            "width": width,
+            "height": height,
+
+            "agents": {},
+        }
         
         self.harvest_agents = []
         for i in range(self.num_agents):
             agent = HarvestAgent(model=self, id=i)
 
             if i == 0:
-                decision_module = LLMDecisionModule(llm_client, agent)
+                decision_module = LLMDecisionModule(llm_client, agent, prompt_name=self.prompt_type)
             else:
                 decision_module = RuleBasedDecisionModule(agent)
-            
+
+            self.metadata["agents"][str(i)] = {
+                "decision_module": type(decision_module).__name__
+            }
+
+            if isinstance(decision_module, RuleBasedDecisionModule):
+                self.metadata["agents"][str(i)].update({
+                    "critical_health_threshold":
+                        decision_module.critical_health_threshold,
+
+                    "low_health_threshold":
+                        decision_module.low_health_threshold,
+                })
+
+            if isinstance(decision_module, LLMDecisionModule):
+                self.metadata["agents"][str(i)].update({
+                    "model": llm_client.model,
+                    "temp": llm_client.temperature,
+                    "prompt_name": decision_module.prompt_name,
+                    "prompt_text": decision_module.prompt_text
+                })
+
             agent.assign_modules(decision_module=decision_module)
 
             cell = self.random.choice(list(self.grid.all_cells.cells))
@@ -52,6 +85,7 @@ class HarvestModel(mesa.Model):
 
         self.episode = 1
         self._init_reporters()
+        self.write_metadata()
     
     def step(self):
         if self.episode_done:
@@ -212,6 +246,17 @@ class HarvestModel(mesa.Model):
 
         path = Path(f"data/results/current_run/behaviour_bases_{self.filepath}.csv")
         pd.DataFrame(rows).to_csv(path, index=False)
+
+    def write_metadata(self):
+        with open(
+            "data/results/current_run/metadata.json",
+            "w"
+        ) as f:
+            json.dump(
+                self.metadata,
+                f,
+                indent=4
+            )
 
     def _init_reporters(self, filepath=""):
         os.makedirs("data/results/current_run", exist_ok=True)

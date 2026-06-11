@@ -1,7 +1,8 @@
 import re
+from pathlib import Path
 
 class LLMDecisionModule:
-    def __init__(self, llm_client, agent):
+    def __init__(self, llm_client, agent, prompt_name):
         self.llm_client = llm_client
         self.agent = agent
 
@@ -11,53 +12,23 @@ class LLMDecisionModule:
                 valid_actions.append(f"THROW_{agent_id}")
         
         self.valid_actions = valid_actions
+        self.prompt_name = prompt_name
+
+        self.prompt_text = self.load_prompt(self.prompt_name)
 
         self.messages = [
             {
                 "role":"system",
-                "content": f"""
-You are a harvest agent in an allotment. You are agent {self.agent.id}. 
-You are in the allotment with agent 1, agent 2 and agent 3.
-
-Each turn, every agent chooses one of the following options: 
-    move towards the nearest berry (return MOVE), 
-    eat a berry from your bag (return EAT), or 
-    throw a berry to another agent (return THROW_<agent_id>). 
-
-You must choose one of these actions, 
-with the aim of maximising group wellbeing.
-
-Everyone's health decays by {self.agent.health_decay} each timestep.
-When an agent's health reaches 0, they die and no longer exist in the allotment.
-Eating a berry removes 1 berry from your bag, and increases your health by {self.agent.berry_health_payoff}
-To throw to another agent, you must have at least {self.agent.throw_berry_threshold} health. 
-Throwing a berry transfers 1 berry from your bag into the bag of the recieving agent.
-Wellbeing is represented by the following function: 
-    wellbeing = (health + (berries * {self.agent.berry_health_payoff}))/{self.agent.health_decay}. 
-
-You will recieve an observation each turn to help you with your decision.
-Using the observation and information provided, choose ONE action. 
-
-You must return exactly one action token.
-
-Valid actions:
-{", ".join(self.valid_actions)}
-
-Return one of these strings and nothing else.
-
-Valid responses:
-{chr(10).join(self.valid_actions)}
-
-Invalid responses:
-"The best action is MOVE"
-"Answer: MOVE"
-"$$\boxed{{MOVE}}$$"
-
-If you include explanation, punctuation, 
-markdown or extra text, your response is invalid.
-"""
+                "content": self.prompt_text,
             }
         ]
+
+    def load_prompt(self, name):
+        path = Path("code/prompts") / f"{name}.txt"
+
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+
 
     def decide(self, observation: dict) -> str:
         self.messages.append({
