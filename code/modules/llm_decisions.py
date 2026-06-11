@@ -39,19 +39,26 @@ class LLMDecisionModule:
         self.trim_history()
         response = self.llm_client.chat(self.messages)
 
+        action_text = response["content"]
+        reasoning = response["thinking"]
+
         self.messages.append({
             "role": "assistant",
-            "content": response,
+            "content": action_text,
         })
 
-        action = self.parse_action(response)
+        action = self.parse_action(action_text)
 
         if action is None:
-            return self.get_user_action(response)
+            return self.get_user_action(reasoning)
         
         return action
     
     def observation_to_message(self, obs: dict) -> str:
+        wellbeing_lines = "\n".join(
+            f"agent {i} wellbeing: {w}"
+            for i, w in enumerate(obs["society_wellbeing"])
+        )
         return f"""
 Step: {self.agent.model.steps}
 
@@ -59,10 +66,8 @@ Here is an observation of the current state:
     your current health: {obs["health"]},
     number of berries in your bag: {obs["berries"]}, 
     your distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
-    your wellbeing: {obs['society_wellbeing'][0]},
-    agent 1 wellbeing: {obs['society_wellbeing'][1]},
-    agent 2 wellbeing: {obs['society_wellbeing'][2]},
-    agent 3 wellbeiong : {obs['society_wellbeing'][3]}
+    your wellbeing: {obs['society_wellbeing'][0] if len(obs['society_wellbeing']) > 0 else "N/A"},
+    {wellbeing_lines}
 
 Valid actions:
 {", ".join(self.valid_actions)}
@@ -95,7 +100,7 @@ Return one of these strings and nothing else.
         self.messages = [system_message] + recent_messages
 
     def get_user_action(self, response: str) -> str:
-        print("\n[LLM WARNING] Invalid response received:")
+        print("\n[LLM WARNING] Invalid response received. Thinking is:")
         print("-" * 60)
         print(response)
         print("-" * 60)

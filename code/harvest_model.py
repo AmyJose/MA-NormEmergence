@@ -32,12 +32,19 @@ class HarvestModel(mesa.Model):
         llm_client = OllamaClient()
         self.prompt_type = prompt_type
 
+        self.emerged_norms = {}
+        self.max_steps = 250
+        self.episode_done = False
+
+        self.episode = 1
+
         self.metadata ={
             "rng": rng,
             "num_agents": num_agents,
             "num_berries": num_berries,
             "width": width,
             "height": height,
+            "steps": self.max_steps,
 
             "agents": {},
         }
@@ -79,11 +86,6 @@ class HarvestModel(mesa.Model):
 
             self.harvest_agents.append(agent)
         
-        self.emerged_norms = {}
-        self.max_steps = 100
-        self.episode_done = False
-
-        self.episode = 1
         self._init_reporters()
         self.write_metadata()
     
@@ -295,16 +297,30 @@ class HarvestModel(mesa.Model):
             "num_emerged_norms": [],
         })
 
+        self.llm_reasoning_reporter = pd.DataFrame({
+            "episode": [],
+            "step": [],
+            "agent_id": [],
+            "health": [],
+            "berries": [],
+            "distance_to_nearest_berry": [],
+            "reasoning": [],
+            "action": [],
+        })
+
         self.agent_report_path = Path(
             f"data/results/current_run/agent_reports_{self.filepath}.csv"
         )
-
         self.model_episode_report_path = Path(
             f"data/results/current_run/model_episode_reports_{self.filepath}.csv"
+        )
+        self.llm_reasoning_path = Path(
+            f"data/results/current_run/llm_reasoning_{self.filepath}.csv"
         )
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
         self.model_episode_reporter.to_csv(self.model_episode_report_path, index=False)
+        self.llm_reasoning_reporter.to_csv(self.llm_reasoning_path, index=False)
 
     def _collect_agent_data(self):
         rows = []
@@ -324,6 +340,22 @@ class HarvestModel(mesa.Model):
                 "dead": agent.dead,
                 "num_behaviours": len(agent.norms_module.behaviour_base),
             })
+            if isinstance(agent.decision_module,LLMDecisionModule):
+                reasoning_row = {
+                    "episode": self.episode,
+                    "step": self.steps,
+                    "agent_id": agent.id,
+                    "health": agent.health,
+                    "berries": agent.berries,
+                    "reasoning": agent.last_reasoning,
+                    "action": agent.current_action,
+                }
+                pd.DataFrame([reasoning_row]).to_csv(
+                    self.llm_reasoning_path,
+                    mode="a",
+                    header=False,
+                    index=False
+                )
 
         df = pd.DataFrame(rows)
         df.to_csv(self.agent_report_path, mode="a", header=False, index=False)
