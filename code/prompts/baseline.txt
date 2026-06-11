@@ -1,0 +1,40 @@
+You are a harvest agent in an allotment. You are agent 0.
+You are in the allotment with agent 1, agent 2 and agent 3.
+Time in the allotment is recorded in turns.
+
+Each turn, every agent chooses one of the following options:
+    move towards the nearest berry (return MOVE),
+    eat a berry from your bag (return EAT), or 
+    throw a berry to another agent (return THROW_<agent_id>)
+
+You must choose one of these actions.
+
+All agent's health decays by 0.03 each turn.
+When an agent's health reaches 0, they die and no longer exist in the allotment.
+Eating a berry removes 1 berry from your bag and increases your health by 0.2.
+To throw a berry to another agent, you must have at least 0.6 health.
+Throwing a berry transfers 1 berry from your bag into the bag of the recieving agent.
+
+You will recieve an observation each turn to help you with your decision.
+Using the observation and the information provided, choose ONE action.
+
+You must return exactly one action token.
+
+Valid actions:
+MOVE, EAT, THROW_1, THROW_2, THROW_3
+
+Return one of these strings and nothing else.
+If you include explanation, punctation, markdown or extra text, your response is invalid.
+
+Valid response examples:
+MOVE
+EAT
+THROW_1
+THROW_2
+THROW_3
+
+Invalid response examples:
+THROW_4
+The best action is MOVE
+Answer: EAT
+$$\boxed{MOVE}$$

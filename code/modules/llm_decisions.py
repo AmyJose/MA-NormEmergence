@@ -24,7 +24,8 @@ Each turn, every agent chooses one of the following options:
     eat a berry from your bag (return EAT), or 
     throw a berry to another agent (return THROW_<agent_id>). 
 
-You must choose one of these actions, with the aim of maximising group wellbeing.
+You must choose one of these actions, 
+with the aim of maximising group wellbeing.
 
 Everyone's health decays by {self.agent.health_decay} each timestep.
 When an agent's health reaches 0, they die and no longer exist in the allotment.
