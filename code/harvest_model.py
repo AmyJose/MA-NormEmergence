@@ -11,7 +11,7 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline"):
+    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="cooperative"):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -33,7 +33,7 @@ class HarvestModel(mesa.Model):
         self.prompt_type = prompt_type
 
         self.emerged_norms = {}
-        self.max_steps = 250
+        self.max_steps = 300
         self.episode_done = False
 
         self.episode = 1
@@ -315,7 +315,7 @@ class HarvestModel(mesa.Model):
             f"data/results/current_run/model_episode_reports_{self.filepath}.csv"
         )
         self.llm_reasoning_path = Path(
-            f"data/results/current_run/llm_reasoning_{self.filepath}.csv"
+            f"data/results/current_run/llm_reasoning_{self.filepath}.jsonl"
         )
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
@@ -350,12 +350,8 @@ class HarvestModel(mesa.Model):
                     "reasoning": agent.last_reasoning,
                     "action": agent.current_action,
                 }
-                pd.DataFrame([reasoning_row]).to_csv(
-                    self.llm_reasoning_path,
-                    mode="a",
-                    header=False,
-                    index=False
-                )
+                with open(self.llm_reasoning_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(reasoning_row) + "\n")
 
         df = pd.DataFrame(rows)
         df.to_csv(self.agent_report_path, mode="a", header=False, index=False)

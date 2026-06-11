@@ -46,6 +46,7 @@ class LLMDecisionModule:
             "role": "assistant",
             "content": action_text,
         })
+        self.agent.last_reasoning = reasoning
 
         action = self.parse_action(action_text)
 
