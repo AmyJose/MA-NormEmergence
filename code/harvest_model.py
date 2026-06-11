@@ -4,7 +4,7 @@ from harvest_agent import HarvestAgent
 import pandas as pd
 import os
 from pathlib import Path
-from llm_client import LLMClient
+from llm_client import HuggingFaceClient, OllamaClient
 from modules.llm_decisions import LLMDecisionModule
 from modules.decisions import RuleBasedDecisionModule
 
@@ -27,7 +27,8 @@ class HarvestModel(mesa.Model):
 
         self.spawn_berries()
 
-        llm_client = LLMClient()
+        #llm_client = HuggingFaceClient()
+        llm_client = OllamaClient()
         
         self.harvest_agents = []
         for i in range(self.num_agents):
@@ -46,7 +47,7 @@ class HarvestModel(mesa.Model):
             self.harvest_agents.append(agent)
         
         self.emerged_norms = {}
-        self.max_steps = 400
+        self.max_steps = 100
         self.episode_done = False
 
         self.episode = 1
@@ -64,6 +65,7 @@ class HarvestModel(mesa.Model):
         if self.steps >= self.max_steps or all(agent.dead for agent in self.harvest_agents):
             self._collect_model_episode_data()
             self.write_emerged_norms()
+            self.write_behaviour_bases()
             self.episode_done = True
         
         self._collect_agent_data()
@@ -92,25 +94,59 @@ class HarvestModel(mesa.Model):
             if not agent.dead
         ]
 
-    def check_emergent_norms(self, threshold=0.9, min_uses=1):
-        all_behaviours = set()
+    def check_emergent_norms(self, adoption_threshold=0.75, dominance_threshold=0.6):
+        all_states = set()
+        agent_preferences = {}
 
         for agent in self.harvest_agents:
-            all_behaviours.update(agent.norms_module.behaviour_base.keys())
+            dominant = (
+                agent.norms_module
+                .get_dominant_behaviours(
+                    dominance_threshold
+                )
+            )
+            
+            agent_preferences[agent.id] = dominant
+
+            all_states.update(dominant.keys())
 
         emerged_norms = []
 
-        for behaviour in all_behaviours:
-            adopters = sum(
-                1
-                for agent in self.harvest_agents
-                if agent.norms_module.behaviour_base.get(behaviour, {}).get("count", 0) >= min_uses
+        for state in all_states:
+            action_counts = {}
+            
+            for agent in self.harvest_agents:
+                action = (
+                    agent_preferences
+                    .get(agent.id, {})
+                    .get(state)
+                )
+                if action is None:
+                    continue
+                action_counts[action] = (
+                    action_counts.get(action, 0)
+                    + 1
+                )
+
+            if not action_counts:
+                continue
+            
+            dominant_action = max(
+                action_counts,
+                key=action_counts.get
+            )
+            adoption_rate = (
+                action_counts[dominant_action]
+                / len(self.harvest_agents)
             )
 
-            adoption_rate = adopters / len(self.harvest_agents)
-
-            if adoption_rate >= threshold:
-                emerged_norms.append((behaviour, adoption_rate))
+            if adoption_rate >= adoption_threshold:
+                emerged_norms.append(
+                    (
+                        f"{state},THEN,{dominant_action}",
+                        adoption_rate
+                    )
+                )
 
         return emerged_norms
     
@@ -147,7 +183,7 @@ class HarvestModel(mesa.Model):
                     }
                 )
 
-    def write_emerged_norms(self, filename="emerged_norms.csv"):
+    def write_emerged_norms(self):
         rows = []
 
         for behaviour, stats in self.emerged_norms.items():
@@ -159,10 +195,25 @@ class HarvestModel(mesa.Model):
                 "times_emerged": stats["times_emerged"],
                 "max_adoption": stats["max_adoption"],
             })
+        path = Path(f"data/results/current_run/emerged_norms_{self.filepath}.csv")
+        pd.DataFrame(rows).to_csv(path, index=False)
 
-        pd.DataFrame(rows).to_csv(filename, index=False)
+    def write_behaviour_bases(self):
+        rows = []
+        for agent in self.harvest_agents:
+            for behaviour, stats in agent.norms_module.behaviour_base.items():
+                rows.append({
+                    "episode": self.episode,
+                    "agent_id": agent.id,
+                    "behaviour": behaviour,
+                    "count": stats.get("count", 0),
+                    "decision_module": type(agent.decision_module).__name__,
+                })
 
-    def _init_reporters(self, filepath="current_run"):
+        path = Path(f"data/results/current_run/behaviour_bases_{self.filepath}.csv")
+        pd.DataFrame(rows).to_csv(path, index=False)
+
+    def _init_reporters(self, filepath=""):
         os.makedirs("data/results/current_run", exist_ok=True)
 
         self.filepath = filepath
@@ -173,6 +224,7 @@ class HarvestModel(mesa.Model):
             "step": [],
             "berries": [],
             "berries_consumed": [],
+            "berries_foraged": [],
             "berries_thrown": [],
             "health": [],
             "wellbeing": [],
@@ -219,6 +271,7 @@ class HarvestModel(mesa.Model):
                 "step": self.steps,
                 "berries": agent.berries,
                 "berries_consumed": agent.berries_consumed,
+                "berries_foraged": agent.berries_foraged,
                 "berries_thrown": agent.berries_thrown,
                 "health": agent.health,
                 "wellbeing": agent.get_wellbeing(),
