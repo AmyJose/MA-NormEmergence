@@ -15,13 +15,6 @@ def save_run(run_name):
 
     shutil.copytree(source, destination)
 
-    metadata = {
-        "run_name": run_name,
-    }
-
-    with open(destination / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=4)
-
     print(f"Saved run to {destination}")
 
 
