@@ -21,6 +21,7 @@ class HarvestAgent(CellAgent):
 
         self.actions = self._generate_actions()
         self.last_reasoning = ""
+        self.last_fallback_used = False
 
         self.health_decay = 0.03
         self.berry_health_payoff = 0.2

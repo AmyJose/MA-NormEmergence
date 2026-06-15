@@ -50,11 +50,24 @@ class LLMDecisionModule:
 
         action = self.parse_action(action_text)
 
+        fallback_used = False
+
         if action is None:
-            return self.get_user_action(reasoning)
+            fallback_used = True
+            #return self.get_user_action(reasoning)
+            action = self.default_action(observation)
+
+        self.agent.last_reasoning = reasoning
+        self.agent.last_fallback_used = fallback_used
         
         return action
-    
+
+    def default_action(self, observation: dict):
+        """
+        Safe fallback when LLM output is invalid or incomplete.
+        """
+        return self.convert_action_token("MOVE")
+
     def observation_to_message(self, obs: dict) -> str:
         wellbeing_lines = "\n".join(
             f"agent {i} wellbeing: {w}"
@@ -92,7 +105,7 @@ Return one of these strings and nothing else.
 
         return self.convert_action_token(action)
     
-    def trim_history(self, max_turns=8):
+    def trim_history(self, max_turns=5):
         system_message = self.messages[0]
 
         non_system_messages = self.messages[1:]

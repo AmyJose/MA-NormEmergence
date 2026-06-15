@@ -350,6 +350,7 @@ class HarvestModel(mesa.Model):
                     "health": agent.health,
                     "berries": agent.berries,
                     "reasoning": agent.last_reasoning,
+                    "fallback_used": agent.last_fallback_used,
                     "action": agent.current_action,
                 }
                 with open(self.llm_reasoning_path, "a", encoding="utf-8") as f:
