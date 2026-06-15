@@ -1,0 +1,2 @@
+behaviour,first_seen,last_seen,times_emerged,max_adoption
+"IF,no berries,high health,high society wellbeing,THEN,move",1,300,300,1.0

@@ -45,9 +45,14 @@ class OllamaClient:
                     },
                     timeout=600
                 )
-                print(response.json())
+                #print(response.json())
                 response.raise_for_status()
-                return response.json()["message"]["content"].strip()
+                data = response.json()
+                return {
+                    "content": data["message"]["content"].strip(),
+                    "thinking": data["message"].get("thinking", "").strip()
+                }
+
             except(
                 requests.exceptions.Timeout,
                 requests.exceptions.ConnectionError,

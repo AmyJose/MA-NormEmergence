@@ -20,6 +20,7 @@ class HarvestAgent(CellAgent):
         self.current_action = None
 
         self.actions = self._generate_actions()
+        self.last_reasoning = ""
 
         self.health_decay = 0.03
         self.berry_health_payoff = 0.2

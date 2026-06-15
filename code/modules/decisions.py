@@ -2,8 +2,16 @@ class RuleBasedDecisionModule:
     def __init__(self, agent):
         self.agent = agent
         self.epsilon = 0.1
-        self.critical_health_threshold = 0.8
-        self.low_health_threshold = 1.2
+        
+        rng = self.agent.random
+
+        self.critical_health_threshold = (
+            0.5 + rng.uniform(-0.05, 0.05)
+        )
+
+        self.low_health_threshold = (
+            1.0 + rng.uniform(-0.2, 0.2)
+        )
 
     def decide(self, observation:dict) -> str:
         return self.choose_action(observation)
