@@ -1,8 +1,10 @@
 import os
 import requests
 import time
+import torch
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 load_dotenv()
 
@@ -68,3 +70,18 @@ class OllamaClient:
         raise RuntimeError(
             "Failed to get response from Ollama after retries"
         )
+
+class IsambardClient():
+    def __init__(self, model_path, temperature=0.0, max_new_tokens=5000):
+        self.temperature = temperature
+        self.max_new_tokens = max_new_tokens
+
+        #load tokeniser from model_path
+        self.tokeniser = AutoTokenizer.from_pretrained(model_path)
+        #load model from model_path
+        self.model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", dtype=torch.bfloat16)
+
+        self.device = next(self.model.parameters()).device
+
+    def chat(self, messages):
+        
