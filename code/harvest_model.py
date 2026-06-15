@@ -66,11 +66,7 @@ class HarvestModel(mesa.Model):
 
             if isinstance(decision_module, RuleBasedDecisionModule):
                 self.metadata["agents"][str(i)].update({
-                    "critical_health_threshold":
-                        decision_module.critical_health_threshold,
-
-                    "low_health_threshold":
-                        decision_module.low_health_threshold,
+                    "policy": decision_module.policy_type,
                 })
 
             if isinstance(decision_module, LLMDecisionModule):
