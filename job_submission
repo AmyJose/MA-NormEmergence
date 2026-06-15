@@ -1,0 +1,34 @@
+#!/bin/bash
+#SBATCH --job-name=llm-norm-emergence
+#SBATCH --partition=ampere
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=00:10:00
+#SBATCH --output=llm-norm-emergence.out
+
+echo "===== JOB INFO ====="
+echo "Job ID: $SLURM_JOB_ID"
+echo "Node: $(hostname)"
+echo "Start time: $(date)"
+echo
+
+module load cray-python/3.11.7
+
+source ~/MA-NormEmergence/norm-env/bin/activate
+
+echo "===== ENVIRONMENT ====="
+which python
+python --version
+echo
+
+echo "===== GPU INFO ====="
+nvidia-smi
+echo
+
+export MODEL_DIR=$SCRATCHDIR/models
+
+echo "===== RUNNING SCRIPT ====="
+python code/run.py
+echo
+echo "finished at $(date)"

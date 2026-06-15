@@ -5,13 +5,13 @@ import pandas as pd
 import os
 import json
 from pathlib import Path
-from llm_client import HuggingFaceClient, OllamaClient
+from llm_client import HuggingFaceClient, OllamaClient, IsambardClient
 from modules.llm_decisions import LLMDecisionModule
 from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="selfish"):
+    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline"):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -29,7 +29,9 @@ class HarvestModel(mesa.Model):
         self.spawn_berries()
 
         #llm_client = HuggingFaceClient()
-        llm_client = OllamaClient()
+        #llm_client = OllamaClient()
+        llm_client = IsambardClient(model_path=(f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"))
+
         self.prompt_type = prompt_type
 
         self.emerged_norms = {}
@@ -73,7 +75,7 @@ class HarvestModel(mesa.Model):
 
             if isinstance(decision_module, LLMDecisionModule):
                 self.metadata["agents"][str(i)].update({
-                    "model": llm_client.model,
+                    "model": llm_client.model_name,
                     "temp": llm_client.temperature,
                     "prompt_name": decision_module.prompt_name,
                     "prompt_text": decision_module.prompt_text
