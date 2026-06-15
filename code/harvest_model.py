@@ -11,7 +11,7 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="cooperative"):
+    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="selfish"):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
