@@ -110,7 +110,7 @@ class HarvestModel(mesa.Model):
         for _ in range(self.num_berries):
             berry_cell = self.grid.all_cells.select_random_cell()
             #no repeat cells
-            while berry_cell in self.berries():
+            while berry_cell in self.berries:
                 berry_cell = self.grid.all_cells.select_random_cell()
             self.berries.add(berry_cell)
 

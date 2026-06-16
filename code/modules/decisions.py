@@ -2,7 +2,6 @@ class RuleBasedDecisionModule:
     def __init__(self, agent, policy_type="utilitarian"):
         self.agent = agent
         self.policy_type = policy_type
-        rng = self.agent.random
 
     def decide(self, observation:dict) -> str:
         if self.policy_type == "selfish":
@@ -36,10 +35,10 @@ class RuleBasedDecisionModule:
             ):
                 return f"throw_{worst.id}"
 
-        return "move"
+        return self._move_towards_nearest_berry()
     
     #selfless policy : others matter more
-    def _selfless(self, obvs):
+    def _selfless(self, obs):
         if obs["berries"] > 0 and obs["health"] >= 0.6:
             worst = self._get_worst_off_other_agent()
 
@@ -49,7 +48,7 @@ class RuleBasedDecisionModule:
         if obs["berries"] > 0:
             return "eat"
 
-        return "move"
+        return self._move_towards_nearest_berry()
     
     def _get_worst_off_other_agent(self):
         living_others = [
@@ -67,4 +66,4 @@ class RuleBasedDecisionModule:
         )
     def _move_towards_nearest_berry(self):
         return self.agent.moving_module.direction_towards_nearest_berry()
-        
+
