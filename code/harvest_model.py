@@ -35,7 +35,7 @@ class HarvestModel(mesa.Model):
         self.prompt_type = prompt_type
 
         self.emerged_norms = {}
-        self.max_steps = 100
+        self.max_steps = 10
         self.episode_done = False
 
         self.episode = 1
@@ -109,6 +109,9 @@ class HarvestModel(mesa.Model):
 
         for _ in range(self.num_berries):
             berry_cell = self.grid.all_cells.select_random_cell()
+            #no repeat cells
+            while berry_cell in self.berries():
+                berry_cell = self.grid.all_cells.select_random_cell()
             self.berries.add(berry_cell)
 
     def spawn_one_berry(self):

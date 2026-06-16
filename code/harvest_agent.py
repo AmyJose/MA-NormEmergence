@@ -90,6 +90,12 @@ class HarvestAgent(CellAgent):
         self.health -= self.health_decay
         if self.health < 0:
             self.health = 0
+            #reallocate any berries currently being held by the dead agent
+            uneaten_berries = self.berries
+            if uneaten_berries > 0:
+                for _ in range(uneaten_berries-1):
+                    self.model.spawn_one_berry()
+                    
             self.dead = True
 
     def _forage(self):
