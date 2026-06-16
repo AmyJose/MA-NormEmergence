@@ -26,7 +26,7 @@ class RuleBasedDecisionModule:
     #utiliarianism policy
     def _utilitarian(self, obs):
         if obs["berries"] > 0 and obs["health"] < 0.6:
-            return "EAT"
+            return "eat"
 
         if obs["berries"] > 0 and obs["health"] >= 0.6:
             worst = self._get_worst_off_other_agent()
@@ -34,9 +34,9 @@ class RuleBasedDecisionModule:
                 worst is not None
                 and worst.get_wellbeing() < self.agent.get_wellbeing()
             ):
-                return f"THROW_{worst.id}"
+                return f"throw_{worst.id}"
 
-        return "MOVE"
+        return "move"
     
     #selfless policy : others matter more
     def _selfless(self, obvs):
@@ -44,12 +44,12 @@ class RuleBasedDecisionModule:
             worst = self._get_worst_off_other_agent()
 
             if worst is not None:
-                return f"THROW_{worst.id}"
+                return f"throw_{worst.id}"
 
         if obs["berries"] > 0:
-            return "EAT"
+            return "eat"
 
-        return "MOVE"
+        return "move"
     
     def _get_worst_off_other_agent(self):
         living_others = [
@@ -67,19 +67,4 @@ class RuleBasedDecisionModule:
         )
     def _move_towards_nearest_berry(self):
         return self.agent.moving_module.direction_towards_nearest_berry()
-
-    def _get_valid_actions(self, obs):
-        actions = ["MOVE"]
-
-        if obs["berries"] > 0:
-            actions.append("EAT")
-
-            if obs["health"] >= self.agent.throw_berry_threshold:
-                for agent in self.agent.model.harvest_agents:
-                    if (
-                        not agent.dead
-                        and agent.id != self.agent.id
-                    ):
-                        actions.append(f"THROW_{agent.id}")
-
-        return actions
+        

@@ -97,13 +97,13 @@ class HarvestAgent(CellAgent):
             self.model.berries.remove(self.cell)
             self.berries += 1
             self.berries_foraged += 1
+            self.model.spawn_one_berry()
 
     def _eat(self):
         if self.berries > 0:
             self.health += self.berry_health_payoff
             self.berries -= 1
             self.berries_consumed += 1
-            self.model.spawn_one_berry()
             return True
         return False
 
