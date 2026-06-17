@@ -10,8 +10,9 @@ class HarvestAgent(CellAgent):
 
         self.id = id
         self.dead = False
+        self.start_health = 1.0
 
-        self.health = 1.0
+        self.health = start_health
         self.berries = 0
 
         self.berries_consumed = 0
@@ -63,6 +64,28 @@ class HarvestAgent(CellAgent):
             "distance_to_nearest_berry" : self.moving_module.distance_to_berry(),
             "society_wellbeing" : self.model.get_society_wellbeing()
         }
+
+    def reset(self):
+        self.dead = False
+
+        self.health = self.start_health
+        self.berries = 0
+
+        self.berries_consumed = 0
+        self.berries_foraged = 0
+        self.berries_thrown = 0
+
+        self.current_action = None
+        self.last_reasoning =  ""
+        self.last_fallback_used = False
+
+        self.norms_module.behaviour_base = {}
+
+        cell = self.model.random.choice(list(self.model.grid.all_cells.cells))
+        self.move_to(cell)
+
+        if isinstance(self.decision_module, LLMDecisionModule):
+            self.decision_module.reset()
 
     def _generate_actions(self):
         actions = ["north","south", "east", "west", "eat"]

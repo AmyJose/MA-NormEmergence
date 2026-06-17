@@ -89,7 +89,7 @@ class HarvestModel(mesa.Model):
     
     def step(self):
         if self.episode_done:
-            return
+            self.reset_episode()
         
         self.agents.shuffle_do("step")
 
@@ -261,6 +261,20 @@ class HarvestModel(mesa.Model):
                 indent=4
             )
 
+    def reset_episode(self):
+        self.episode += 1
+        self.episode_done = False
+
+        self.emerged_norms = {}
+
+        self.steps = 0
+
+        self.berries.clear()
+        self.spawn_berries()
+
+        for agent in self.harvest_agents:
+            agent.reset()
+
     def _init_reporters(self, filepath=""):
         os.makedirs("data/results/current_run", exist_ok=True)
 
@@ -304,8 +318,8 @@ class HarvestModel(mesa.Model):
             "agent_id": [],
             "health": [],
             "berries": [],
-            "distance_to_nearest_berry": [],
             "reasoning": [],
+            "fallback_used":[],
             "action": [],
         })
 

@@ -30,6 +30,14 @@ class LLMDecisionModule:
             return f.read()
 
 
+    def reset(self):
+        self.messages = [
+            {
+                "role": "system",
+                "content": self.prompt_text,
+            }
+        ]
+
     def decide(self, observation: dict) -> str:
         self.messages.append({
             "role":"user",
