@@ -35,7 +35,7 @@ class HarvestModel(mesa.Model):
         self.prompt_type = prompt_type
 
         self.emerged_norms = {}
-        self.max_steps = 10
+        self.max_steps = 75
         self.episode_done = False
 
         self.episode = 1

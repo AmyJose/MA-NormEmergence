@@ -3,12 +3,12 @@ class NormsModule:
         self.agent = agent
         self.behaviour_base = {}
 
-        self.low_berries_threshold = 1
-        self.high_berries_threshold = 3
-        self.low_health_threshold = 0.8
-        self.high_health_threshold = 1.5
-        self.low_wellbeing_threshold = 30
-        self.high_wellbeing_threshold = 55
+        self.low_berries_threshold = 2
+        self.high_berries_threshold = 4
+        self.low_health_threshold = 0.3
+        self.high_health_threshold = 0.7
+        self.low_wellbeing_threshold = 10
+        self.high_wellbeing_threshold = 25
 
     def get_pre(self, observation):
         berries = observation["berries"]
@@ -39,11 +39,10 @@ class NormsModule:
             self.behaviour_base[current_norm] = {"count": 1}
 
     def get_dominant_behaviours(self, dominance_threshold=0.6):
-        state_actions = {}
         for behaviour, data in self.behaviour_base.items():
             parts = behaviour.split(",THEN,")
-            
-            if len(parts)!= 2:
+
+            if len(parts) != 2:
                 continue
 
             state = parts[0]
@@ -51,25 +50,31 @@ class NormsModule:
 
             if state not in state_actions:
                 state_actions[state] = {}
-            
-            state_actions[state][action] = data["count"]
 
-            dominant_behaviours = {}
+            if action not in state_actions[state]:
+                state_actions[state][action] = 0
 
-            for state, actions in state_actions.items():
-                total = sum(actions.values())
+            state_actions[state][action] += data["count"]
 
-                dominant_action = max(
-                    actions,
-                    key=actions.get
-                )
-                dominance_ratio = (
-                    actions[dominant_action]
-                    /total
-                )
-                if dominance_ratio >=dominance_threshold:
-                    dominant_behaviours[state] = dominant_action
-            return dominant_behaviours
+        dominant_behaviours = {}
+
+        for state, actions in state_actions.items():
+            total = sum(actions.values())
+
+            dominant_action = max(
+                actions,
+                key=actions.get
+            )
+
+            dominance_ratio = (
+                actions[dominant_action]
+                / total
+            )
+
+            if dominance_ratio >= dominance_threshold:
+                dominant_behaviours[state] = dominant_action
+
+        return dominant_behaviours
 
     def _bucket_berries(self, berries):
         if berries == 0:

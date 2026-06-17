@@ -54,24 +54,24 @@ wellbeing = (health + (berries × berry_health_payoff))
 
 ## Behaviour Representation
 
-Agent behaviours are represented as condition-action rules:
+Agent behaviours are represented as condition-action rules derived from discretised observations of the environment:
 
 ```text
-IF <agent state>
+IF <berry state>, <health state>, <society wellbeing state>
 THEN <action>
 ```
 
 For example:
 
 ```text
-IF low health, medium berries
-THEN eat
+IF low berries, low health, low society wellbeing
+THEN move
 ```
 
 or
 
 ```text
-IF high health, medium berries
+IF medium berries, high health, low society wellbeing
 THEN throw
 ```
 
@@ -83,7 +83,7 @@ A behaviour is considered an emergent norm when it is adopted by a sufficiently 
 The current implementation defines emergence as:
 
 ```text
-Adoption Rate >= 90% 
+Adoption Rate >= 75% 
 ```
 
 Norm statistics tracked include:
@@ -92,6 +92,9 @@ Norm statistics tracked include:
 * Number of occurances
 * Maximum adoption rate
 * Persistance over time
+* Duration of adoption
+
+Norm emergence is evaluated independently for each discretised environmental state, alloweing different norms to emerge under different resource and wellbeing conditions.
 
 ## Experimental Goals
 The environment provides a platform for investigating:
@@ -112,30 +115,43 @@ Current experiments compare traditional rule-based agents with LLM-controlled ag
 | Grid Size | 8 x 4 |
 | Initial Agents | 4 |
 | Initial Berries | 8 |
-| Initial Agent Health | 2.0 |
-| Health Decay per Step | 0.03 |
-| Health Gain per Berry Eaten | 0.2 |
-| Throw Threshold | 0.6 |
-| Maximum Episode Length | 200 steps |
+| Initial Agent Health | 1.0 |
+| Health Decay per Step | 0.06 |
+| Health Gain per Berry Eaten | 0.35 |
+| Throw Threshold | 0.3 |
+| Maximum Episode Length | 75 steps |
 | Agent Activation | Random asynchronous order |
-| Berry Regrowth | One berry spawned after each berry is eaten |
+| Berry Regrowth | One berry spawned after each berry is foraged |
 
 
 ### Health States
 
 | State | Range |
 |---------|---------|
-| Low Health | < 0.8 |
-| Medium Health | 0.8 ≤ health < 1.5 |
-| High Health | ≥ 1.5 |
+| Low Health | < 0.3 |
+| Medium Health | 0.3 ≤ health < 0.7 |
+| High Health | ≥ 0.7 |
 
 ### Berry States
+
+Agents have no upper limit on the number of berries they may carry.
 
 | State | Range |
 |---------|---------|
 | No Berries | 0 |
-| Medium Berries | 1–2 |
-| High Berries | ≥ 3 |
+| Low Berries | 1 |
+| Medium Berries | 2 ≤ berries < 4 |
+| High Berries | ≥ 4 |
+
+### Society Wellbeing States
+
+Society wellbeing is defined as the minimum wellbeing of all other living agents
+
+| State | Range |
+|---------|---------|
+| Low Society Wellbeing | < 10 |
+| Medium Society Wellbeing | 10 ≤ wellbeing < 25 |
+| High Society Wellbeing | ≥ 25 |
 
 ### Episode Termination
 
@@ -143,6 +159,13 @@ An episode ends when:
 
 - All agents have died, or
 - The maximum episode length is reached.
+
+### Resource Dynamics
+
+The environment maintains a constant supply of berry resources. Whenever a berry is foraged by an agent, a new berry is spawned at a randomly selected unoccupied grid location. Consequently, resource scarcity arises from competition for access to berries rather than resource depletion.
+
+Agent inventories are unbounded, allowing individuals to accumulate and store resources over time.
+
 
 
 ## Running

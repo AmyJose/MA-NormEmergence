@@ -24,10 +24,12 @@ class RuleBasedDecisionModule:
 
     #utiliarianism policy
     def _utilitarian(self, obs):
-        if obs["berries"] > 0 and obs["health"] < 0.6:
+        #if i have a berry and cant throw it, just eat
+        if obs["berries"] > 0 and obs["health"] < self.agent.throw_berry_threshold:
             return "eat"
 
-        if obs["berries"] > 0 and obs["health"] >= 0.6:
+        # if i have a berry and CAN throw, decide who to throw it to
+        if obs["berries"] > 0 and obs["health"] >= self.agent.throw_berry_threshold:
             worst = self._get_worst_off_other_agent()
             if (
                 worst is not None
@@ -35,11 +37,12 @@ class RuleBasedDecisionModule:
             ):
                 return f"throw_{worst.id}"
 
+        #otherwise, just move
         return self._move_towards_nearest_berry()
     
     #selfless policy : others matter more
     def _selfless(self, obs):
-        if obs["berries"] > 0 and obs["health"] >= 0.6:
+        if obs["berries"] > 0 and obs["health"] >= self.agent.throw_berry_threshold:
             worst = self._get_worst_off_other_agent()
 
             if worst is not None:

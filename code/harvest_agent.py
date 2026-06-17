@@ -11,7 +11,7 @@ class HarvestAgent(CellAgent):
         self.id = id
         self.dead = False
 
-        self.health = 2.0
+        self.health = 1.0
         self.berries = 0
 
         self.berries_consumed = 0
@@ -23,9 +23,9 @@ class HarvestAgent(CellAgent):
         self.last_reasoning = ""
         self.last_fallback_used = False
 
-        self.health_decay = 0.03
-        self.berry_health_payoff = 0.2
-        self.throw_berry_threshold = 0.6
+        self.health_decay = 0.06
+        self.berry_health_payoff = 0.35
+        self.throw_berry_threshold = 0.3
     
     def assign_modules(self, decision_module):
         self.norms_module = NormsModule(self)
