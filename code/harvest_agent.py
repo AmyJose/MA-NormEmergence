@@ -1,6 +1,7 @@
 from mesa.discrete_space import CellAgent
 from modules.norms import NormsModule
 from modules.moving import MovingModule
+from modules.llm_decisions import LLMDecisionModule
 
 class HarvestAgent(CellAgent):
     """Agent in the model environment"""
@@ -12,7 +13,7 @@ class HarvestAgent(CellAgent):
         self.dead = False
         self.start_health = 1.0
 
-        self.health = start_health
+        self.health = self.start_health
         self.berries = 0
 
         self.berries_consumed = 0

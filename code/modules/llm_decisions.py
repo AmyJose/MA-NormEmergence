@@ -82,7 +82,7 @@ class LLMDecisionModule:
             for i, w in enumerate(obs["society_wellbeing"])
         )
         return f"""
-Step: {self.agent.model.steps}
+Step: {self.agent.model.episode_step}
 
 Here is an observation of the current state: 
     your current health: {obs["health"]},

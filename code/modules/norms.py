@@ -39,6 +39,7 @@ class NormsModule:
             self.behaviour_base[current_norm] = {"count": 1}
 
     def get_dominant_behaviours(self, dominance_threshold=0.6):
+        state_actions = {}
         for behaviour, data in self.behaviour_base.items():
             parts = behaviour.split(",THEN,")
 
