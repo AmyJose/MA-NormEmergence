@@ -235,5 +235,4 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-emerged_norms.csv
 data/results/current_run/

@@ -1,0 +1,33 @@
+===== JOB INFO =====
+Job ID: 44906
+Node: x3002c0s1b1mg0
+Start time: Fri Jun 19 08:42:41 AM UTC 2026
+
+===== ENVIRONMENT =====
+/lfs1i3/home/b35t/amyjose.b35t/MA-NormEmergence/norm-env/bin/python
+Python 3.11.7
+
+===== GPU INFO =====
+Fri Jun 19 08:42:41 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 580.126.20             Driver Version: 580.126.20     CUDA Version: 13.0     |
++-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:C7:00.0 Off |                    0 |
+| N/A   48C    P0             60W /  400W |       0MiB /  40960MiB |      0%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+===== RUNNING SCRIPT =====
+Loading weights:   0%|          | 0/399 [00:00<?, ?it/s]

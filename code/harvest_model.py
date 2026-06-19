@@ -11,7 +11,7 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline"):
+    def __init__(self, rng, llm_client, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline", rule_policy="utilitarian", run_dir="data/results/current_run"):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -30,9 +30,11 @@ class HarvestModel(mesa.Model):
 
         #llm_client = HuggingFaceClient()
         #llm_client = OllamaClient()
-        llm_client = IsambardClient(model_path=(f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"))
+        #llm_client = IsambardClient(model_path=(f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"))
 
         self.prompt_type = prompt_type
+        self.rule_policy = rule_policy
+        self.run_dir = Path(run_dir)
 
         self.emerged_norms = {}
         self.max_steps = 75
@@ -49,6 +51,10 @@ class HarvestModel(mesa.Model):
             "height": height,
             "max_steps": self.max_steps,
 
+            "prompt_type": self.prompt_type,
+            "rule_policy": self.rule_policy,
+            "run_dir": str(self.run_dir),
+
             "agents": {},
         }
         
@@ -59,7 +65,7 @@ class HarvestModel(mesa.Model):
             if i == 0:
                 decision_module = LLMDecisionModule(llm_client, agent, prompt_name=self.prompt_type)
             else:
-                decision_module = RuleBasedDecisionModule(agent)
+                decision_module = RuleBasedDecisionModule(agent, policy_type=self.rule_policy)
 
             self.metadata["agents"][str(i)] = {
                 "decision_module": type(decision_module).__name__
@@ -89,8 +95,8 @@ class HarvestModel(mesa.Model):
         self.write_metadata()
     
     def step(self):
-        if self.episode_done:
-            self.reset_episode()
+        #if self.episode_done:
+            #self.reset_episode()
         
         self.agents.shuffle_do("step")
 
@@ -265,7 +271,7 @@ class HarvestModel(mesa.Model):
 
     def write_metadata(self):
         with open(
-            "data/results/current_run/metadata.json",
+            self.run_dir / "metadata.json",
             "w"
         ) as f:
             json.dump(
@@ -288,7 +294,7 @@ class HarvestModel(mesa.Model):
             agent.reset()
 
     def _init_reporters(self, filepath=""):
-        os.makedirs("data/results/current_run", exist_ok=True)
+        self.run_dir.mkdir(parents=True, exist_ok=True)
 
         self.filepath = filepath
 
@@ -336,21 +342,13 @@ class HarvestModel(mesa.Model):
         })
 
 
-        self.agent_report_path = Path(
-            f"data/results/current_run/agent_reports_{self.filepath}.csv"
-        )
-        self.model_episode_report_path = Path(
-            f"data/results/current_run/model_episode_reports_{self.filepath}.csv"
-        )
-        self.llm_reasoning_path = Path(
-            f"data/results/current_run/llm_reasoning_{self.filepath}.jsonl"
-        )
-        self.behaviour_bases_path = Path(
-            f"data/results/current_run/behaviour_bases_{self.filepath}.csv"
-        )
-        self.emerged_norms_path = Path(
-            f"data/results/current_run/emerged_norms_{self.filepath}.csv"
-        )
+        self.agent_report_path = self.run_dir / "agent_reports.csv"
+
+        self.model_episode_report_path = self.run_dir / "model_episode_reports.csv"
+        
+        self.llm_reasoning_path =self.run_dir / "llm_reasoning.jsonl"
+        self.behaviour_bases_path = self.run_dir / "behaviour_bases.csv"
+        self.emerged_norms_path = self.run_dir / "emerged_norms.csv"
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
         self.model_episode_reporter.to_csv(self.model_episode_report_path, index=False)
