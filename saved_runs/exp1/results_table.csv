@@ -1,0 +1,12 @@
+,,total_wellbeing,total_wellbeing,gini_wellbeing,gini_wellbeing,episode_length,episode_length,num_emerged_norms,num_emerged_norms
+,,mean,std,mean,std,mean,std,mean,std
+prompt,rule,,,,,,,,
+baseline,selfish,186.66666666666669,,0.14062500000000067,,74.0,,4.0,
+baseline,selfless,93.3333333333333,,0.53125,,74.0,,9.0,
+baseline,utilitarian,145.83333333333343,,0.4900000000000002,,74.0,,10.0,
+cooperative,selfish,174.99999999999983,,0.08333333333333348,,74.0,,4.0,
+cooperative,selfless,40.83333333333329,,0.10714285714285765,,74.0,,9.0,
+cooperative,utilitarian,40.83333333333327,,0.10714285714285765,,74.0,,12.0,
+selfish,selfish,145.83333333333331,,0.2700000000000007,,74.0,,4.0,
+selfish,selfless,99.16666666666671,,0.5735294117647061,,74.0,,10.0,
+selfish,utilitarian,81.66666666666661,,0.5357142857142856,,74.0,,9.0,

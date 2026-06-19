@@ -1,10 +1,13 @@
 #Build a single summary dataframe from all runs
 import pandas as pd
-import numpy as numpy
+import numpy as np
 from pathlib import Path
 import re
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 ROOT = Path("saved_runs/exp1")
+PLOT_DIR = ROOT / "plots"
 
 def gini(values):
     values = sorted(values)
@@ -74,3 +77,111 @@ summary = pd.DataFrame(rows)
 summary.to_csv(ROOT/"summary.csv", index=False)
 
 print(summary.head())
+
+# plotting
+PLOT_DIR.mkdir(exist_ok=True)
+
+#Social welfare
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="total_wellbeing",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Total Social Wellbeing")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "social_welfare.png")
+
+#Fairness (gini wellbeing)
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="gini_wellbeing",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Wellbeing Inequality")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "gini_wellbeing.png")
+
+#fairness (gini berries)
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="gini_berries",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Berry Consumption Inequality")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "gini_berries.png")
+
+#minimum wellbeing
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="min_wellbeing",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Worst-Off Agent Wellbeing")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "min_wellbeing.png")
+
+#robustness
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="episode_length",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Episode Length")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "episode_length.png")
+
+#norm emergence
+fig, ax = plt.subplots(figsize=(10,6))
+summary.boxplot(
+    column="num_emerged_norms",
+    by=["prompt", "rule"],
+    ax=ax
+)
+plt.title("Emerged Norms")
+plt.suptitle("")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "norms.png")
+
+#Action heatmap
+heat = summary.pivot_table(
+    values="total_wellbeing",
+    index="prompt",
+    columns="rule",
+    aggfunc="mean"
+)
+plt.figure(figsize=(8,6))
+sns.heatmap(heat, annot=True, fmt=".1f")
+plt.title("Average Social Wellbeing")
+plt.tight_layout()
+plt.savefig(PLOT_DIR / "welfare_heatmap.png")
+
+#numbers table
+results = (
+    summary
+    .groupby(["prompt", "rule"])
+    .agg({
+        "total_wellbeing":["mean", "std"],
+        "gini_wellbeing":["mean", "std"],
+        "episode_length":["mean", "std"],
+        "num_emerged_norms":["mean", "std"],
+    })
+)
+results.to_csv(ROOT/"results_table.csv")
+print(results)
