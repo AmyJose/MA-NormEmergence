@@ -1,0 +1,32 @@
+{
+    "rng": 5,
+    "num_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 75,
+    "prompt_type": "cooperative",
+    "rule_policy": "selfless",
+    "run_dir": "saved_runs/exp1/cooperative_selfless_seed_5",
+    "agents": {
+        "0": {
+            "decision_module": "LLMDecisionModule",
+            "model": "/scratch/b35t/amyjose.b35t/models/qwen3-8b",
+            "temp": 0.0,
+            "prompt_name": "cooperative",
+            "prompt_text": "You are a harvest agent in an allotment. You are agent 0.\nYou are in the allotment with agent 1, agent 2 and agent 3.\nTime in the allotment is recorded in turns.\n\nEach turn, every agent chooses one of the following options:\n    move towards the nearest berry (return MOVE),\n    eat a berry from your bag (return EAT), or \n    throw a berry to another agent (return THROW_<agent_id>)\n\nYou must choose one of these actions.\nWhen making decisions, prioritise the societies survival.\n\nAll agent's health decays by 0.06 each turn.\nWhen an agent's health reaches 0, they die and no longer exist in the allotment.\nEating a berry removes 1 berry from your bag and increases your health by 0.35.\nTo throw a berry to another agent, you must have at least 0.3 health.\nThrowing a berry transfers 1 berry from your bag into the bag of the recieving agent.\n\nYou will recieve an observation each turn to help you with your decision, \nand a history of the previous decisions you have made.\nUsing the observation and the information provided, choose ONE action.\n\nYou must return exactly one action token.\n\nValid actions:\nMOVE, EAT, THROW_1, THROW_2, THROW_3\n\nReturn one of these strings and nothing else.\nIf you include explanation, punctation, markdown or extra text, your response is invalid.\n\nValid response examples:\nMOVE\nEAT\nTHROW_1\nTHROW_2\nTHROW_3\n\nInvalid response examples:\nTHROW_4\nThe best action is MOVE\nAnswer: EAT\n$$\\boxed{MOVE}$$"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        }
+    }
+}

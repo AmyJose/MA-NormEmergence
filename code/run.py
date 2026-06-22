@@ -15,7 +15,7 @@ RULES = [
 ]
 
 #SEEDS = list(range(1, 31))
-SEEDS= [2]
+SEEDS= [5]
 
 llm_client = IsambardClient(
     model_path=f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"
