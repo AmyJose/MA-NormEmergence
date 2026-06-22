@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import matplotlib.pyplot as plt
 import seaborn as sns
+from plotting_style import set_thesis_style
 
 ROOT = Path("saved_runs/exp1")
 PLOT_DIR = ROOT / "plots"
@@ -20,6 +21,8 @@ def gini(values):
     weighted_sum = sum((i+1)* v for i, v in enumerate(values))
 
     return (2 * weighted_sum)/ (n *total) - (n+1)/n
+
+set_thesis_style()
 
 rows = []
 for run_dir in ROOT.iterdir():
