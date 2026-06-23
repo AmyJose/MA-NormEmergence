@@ -1,0 +1,8 @@
+trace_id,prompt,rule,action,mentions_health,mentions_berries,mentions_wellbeing,mentions_distance,checks_constraints,considers_multiple_actions,mentions_future_consequences,expresses_uncertainty,mentions_other_agents,evaluates_other_agents,considers_helping_others,justifies_final_action,contains_reasoning_error,notes
+44,baseline,selfish,eat,1,1,1,1,1,1,1,1,1,1,1,1,0,
+51,baseline,selfish,eat,1,1,1,1,1,1,1,0,1,0,0,1,0,
+56,baseline,selfish,move,1,1,1,1,1,0,0,0,0,0,0,1,0,
+70,baseline,selfish,move,1,1,1,1,1,0,1,0,0,0,0,1,0,
+86,baseline,selfish,move,1,1,1,1,1,1,1,0,1,1,1,1,0,
+109,baseline,selfish,move,1,1,1,1,1,0,0,0,1,0,0,1,0,
+113,baseline,selfish,move,1,1,1,1,1,0,0,0,0,0,0,1,0,
