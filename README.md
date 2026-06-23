@@ -1,26 +1,46 @@
 # Norm Emergence in Multi-Agent Systems
 
-A Python/Mesa implementation of a norm emergence environment for studying cooperation, resource sharing, and social welfare in multi-agent systems.
+A Python/Mesa implementation of a norm emergence environment for studying cooperation, resource sharing, social welfare and large language model (LLM) decision making in multi-agent systems.
 
-The project investigates how behavioural norms emerge from repeated interactions between autonomous agents competing for limited resources. Agents forage for food, consume resources to maintain their health, and may choose to share resources with others. Individual behaviours are tracked over time and analysed to identify emergent norms and patterns of social coordination.
+The project investigates how behavioural norms emerge from repeated interactions between autonomous agents competing for limited resources. Agents forage for food, consume resources to maintain their health, and may choose to share resources with others. Individual behaviours are tracked over time and analysed to identify emergent norms, patterns of social coordination and the influence of different decision-making architectures.
 
-The environment is designed as an experimental platform for comparing different decision-making approaches, including rule-based policies and large language model (LLM) agents.
+The environment serves as an experimental platform for comparing traditional rule-based policies with LLM-controlled agents operating withing mixed populations.
 
-## Current Features
+## Features
+### Environment
 * Mesa-based agent simulation
-* Orthogonal Von Neumann grid environment
+* Orthogonal Von Neumann grid world
 * Resource foraging and collection
+* Dynamic berry replenishment
 * Health-based survival mechanics
 * Resource consumption (eat)
 * Resource sharing (throw)
 * Agent mortality
-* Rule-based decision making
-* LLM-based decision making (experimental)
-* Behaviour tracking and behaviour bases
+
+### Agent Decision Making
+* Rule-based agents
+    * Selfish policy
+    * Selfless policy
+    * Utilitarian policy
+* LLM-based agents
+    * Prompt-driven behaviour
+    * Observation-based decision making
+    * Reasoning trace collection
+
+### Norm Analysis
+* Behaviour base generation
 * Emergent norm detection
 * Norm persistence tracking
+* Norm adoption analysis
 * Per-agent behavioural analysis
-* CSV export of simulation results
+* Population-level behavioural analysis
+
+### Experimental Suport
+* Reproducible random seeds
+* Automated experiment execution
+* Structured result storage
+* CSV and JSONL exports
+* Plot generation and experiment summarisation
 
 ## Environment
 
@@ -34,7 +54,7 @@ At each timestep an agent may:
 
 Health decreases over time. Agents whose health reaches zero are considered dead and no longer participate in the simulation.
 
-Berries are replenished dynamically throughout the episode, creating an ongoing resource allocation problem.
+Whenever a berry is foraged, a replacement berry is spawned at a random unoccupied location. Resource scarcity therefore emerges from competition for access to resources rather than depletion of the resource pool itself.
 
 ## Agent Observations
 
@@ -94,19 +114,42 @@ Norm statistics tracked include:
 * Persistance over time
 * Duration of adoption
 
-Norm emergence is evaluated independently for each discretised environmental state, alloweing different norms to emerge under different resource and wellbeing conditions.
+Norm emergence is evaluated independently for each discretised environmental state, allowing different norms to emerge under different resource and wellbeing conditions.
 
-## Experimental Goals
-The environment provides a platform for investigating:
-* Norm emergence
+## Experimental Design
+The primary experiments investigate how prompting influences the behaviour of LLM-controlled agents and the norms that emerge within mixed populations.
+
+Each experimental population contains:
+```text
+1 LLM Agent
+3 Rule-Based Agents
+```
+
+### Rule-Based Policies
+* Selfish
+* Selfless
+* Utilitarian
+
+### LLM Prompt Types
+* Baseline (no aim statement given)
+* Selfish
+* Cooperative
+
+For each prompt-policy combination, multiple random seeds are executed to evaluate behavioural consistency and population-level outcomes.
+
+## Experimental Metric
+The environment records metrics including:
+* Agent health
+* Agent wellbeing
+* Resource consumption
+* Resource sharing
+* Resource inequality (Gini index)
+* Mortality
+* Behaviour diversity
+* Emerged norms
 * Norm persistence
-* Cooperative behavior
-* Resource inequality
-* Social welfare
-* Human-inspired decision making
-* LLM-driven agents in social environments
 
-Current experiments compare traditional rule-based agents with LLM-controlled agents that make decisions directly from environmental observations.
+For LLM agents, reasoning traces and selected actions are also recorded for later analysis.
 
 ## Current Configuration
 
@@ -121,7 +164,7 @@ Current experiments compare traditional rule-based agents with LLM-controlled ag
 | Throw Threshold | 0.3 |
 | Maximum Episode Length | 75 steps |
 | Agent Activation | Random asynchronous order |
-| Berry Regrowth | One berry spawned after each berry is foraged |
+| Berry Regrowth | One berry per foraged berry |
 
 
 ### Health States
@@ -160,14 +203,6 @@ An episode ends when:
 - All agents have died, or
 - The maximum episode length is reached.
 
-### Resource Dynamics
-
-The environment maintains a constant supply of berry resources. Whenever a berry is foraged by an agent, a new berry is spawned at a randomly selected unoccupied grid location. Consequently, resource scarcity arises from competition for access to berries rather than resource depletion.
-
-Agent inventories are unbounded, allowing individuals to accumulate and store resources over time.
-
-
-
 ## Running
 
 Create and activate avirtual environment:
@@ -182,41 +217,14 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Run the simulation:
+Run a simulation:
 
 ```bash
 py code/run.py
 ```
 
-## Saving Runs
-
-The simulation writes output files to:
-
-```text
-data/results/current_run/
-```
-
-The contents of this directory are overwritten each time a new simulation is executed.
-
-To preserve the results of a particular run, use:
-
-```bash
-py code/save_run.py
-```
-
-You will be prompted to provide a name for the run. Alternatively, a name can be supplied directly:
-
-```bash
-py code/save_run.py llm_qwen3_seed_42
-```
-
-Saved runs are copied to:
-
-```text
-data/results/saved_runs/<run_name>/
-```
-
-Each saved run contains:
+## Experimental Outputs
+Each run produces a collection of output files, including:
 
 ```text
 agent_reports.csv
@@ -224,18 +232,38 @@ behaviour_bases.csv
 emerged_norms.csv
 model_episode_reports.csv
 metadata.json
+llm_reasoning.jsonl
 ```
+### Output Descriptions
 
-The `metadata.json` file stores information and notes associated with the saved experiment, helping to track and reproduce results.
+| File | Description |
+|---------|---------|
+| agent_reports.csv | Per-agent state and action data |
+| behaviour_bases.csv | Behaviour frequencies for each agent |
+| emerged_norms.csv | Emergent norm statistics |
+| model_episode_reports.csv | Episode-level aggregate metrics |
+| metadata.json | Run configuration and experimental metadata |
+| llm_reasoning.jsonl | LLM reasoning traces and selected actions|
 
+## Plot Generation
+Saved experiments can be analysed using:
+```bash
+python saved_runs/plot_figures.py <exp_name>
+```
+Generated figures and summary CSV files are written to:
+```bash
+saved_runs/plots/<exp_name>
+```
 
 ## Future Work
 
 Planned extensions include:
 
-* Additional agent decision architectures
 * Multi-episode learning
 * Reinforcement learning agents
+* Larger populations
 * More sophisticated social environments
-* Comparative studies of LLM and non-LLM agents
-* Investigation of norm emergence under heterogeneous populations
+* Dynamic social networks
+* Additional LLM architectures
+* Comparative studies of prompting strategies
+* Investigation of norm emergence in heterogeneous populations
