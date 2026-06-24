@@ -140,6 +140,10 @@ def build_full_summary(runs):
         agents = r["agent_df"]
         model = r["model_df"]
 
+        if model.empty:
+            print(f"EMPTY MODEL REPORT: {r['run_dir']}")
+            continue
+
         final_step = agents["step"].max()
         final_agents = agents[agents["step"] == final_step]
 
@@ -326,14 +330,6 @@ def plot_all(summary_df, outdir):
         "min_wellbeing",
         "Worst-Off Agent Wellbeing",
         outdir / "min_wellbeing.png"
-    )
-
-    # --- robustness ---
-    plot_box(
-        summary_df,
-        "episode_length",
-        "Episode Length",
-        outdir / "episode_length.png"
     )
 
     # --- norms ---
