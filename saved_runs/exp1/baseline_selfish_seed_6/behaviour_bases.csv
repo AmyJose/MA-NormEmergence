@@ -1,0 +1,25 @@
+episode,agent_id,behaviour,count,decision_module
+1,0,"IF,no berries,high health,medium society wellbeing,THEN,move",33,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,eat",5,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,move",1,LLMDecisionModule
+1,0,"IF,no berries,high health,high society wellbeing,THEN,move",20,LLMDecisionModule
+1,0,"IF,low berries,high health,high society wellbeing,THEN,eat",4,LLMDecisionModule
+1,0,"IF,no berries,medium health,medium society wellbeing,THEN,move",4,LLMDecisionModule
+1,0,"IF,low berries,medium health,medium society wellbeing,THEN,eat",2,LLMDecisionModule
+1,0,"IF,no berries,medium health,low society wellbeing,THEN,move",6,LLMDecisionModule
+1,1,"IF,no berries,high health,medium society wellbeing,THEN,move",33,RuleBasedDecisionModule
+1,1,"IF,low berries,high health,medium society wellbeing,THEN,eat",9,RuleBasedDecisionModule
+1,1,"IF,no berries,high health,high society wellbeing,THEN,move",21,RuleBasedDecisionModule
+1,1,"IF,low berries,high health,high society wellbeing,THEN,eat",4,RuleBasedDecisionModule
+1,1,"IF,no berries,high health,low society wellbeing,THEN,move",8,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,medium society wellbeing,THEN,move",34,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,medium society wellbeing,THEN,eat",8,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,high society wellbeing,THEN,eat",7,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,high society wellbeing,THEN,move",18,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,low society wellbeing,THEN,move",6,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,low society wellbeing,THEN,eat",2,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,medium society wellbeing,THEN,move",33,RuleBasedDecisionModule
+1,3,"IF,low berries,high health,medium society wellbeing,THEN,eat",11,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,high society wellbeing,THEN,move",21,RuleBasedDecisionModule
+1,3,"IF,low berries,high health,high society wellbeing,THEN,eat",3,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,low society wellbeing,THEN,move",7,RuleBasedDecisionModule

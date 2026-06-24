@@ -1,0 +1,29 @@
+{
+    "rng": 6,
+    "num_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 75,
+    "prompt_type": "None",
+    "rule_policy": "selfish",
+    "run_dir": "saved_runs/exp1/None_selfish_seed_6",
+    "agents": {
+        "0": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfish"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfish"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfish"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfish"
+        }
+    }
+}

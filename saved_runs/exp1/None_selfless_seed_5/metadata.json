@@ -1,0 +1,29 @@
+{
+    "rng": 5,
+    "num_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 75,
+    "prompt_type": "None",
+    "rule_policy": "selfless",
+    "run_dir": "saved_runs/exp1/None_selfless_seed_5",
+    "agents": {
+        "0": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "selfless"
+        }
+    }
+}

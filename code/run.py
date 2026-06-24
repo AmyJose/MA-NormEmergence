@@ -14,8 +14,8 @@ RULES = [
     "selfless"
 ]
 
-#SEEDS = list(range(1, 31))
-SEEDS= [5]
+SEEDS = list(range(1, 11))
+#SEEDS= [7, 8, 9, 10]
 
 llm_client = IsambardClient(
     model_path=f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"

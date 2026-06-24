@@ -1,0 +1,12 @@
+episode,behaviour,first_seen,last_seen,times_emerged,max_adoption
+1,"IF,no berries,high health,medium society wellbeing,THEN,move",0,74,75,1.0
+1,"IF,medium berries,medium health,medium society wellbeing,THEN,throw",8,74,67,1.0
+1,"IF,medium berries,low health,medium society wellbeing,THEN,eat",12,74,63,0.75
+1,"IF,medium berries,high health,medium society wellbeing,THEN,throw",20,74,55,0.75
+1,"IF,low berries,medium health,medium society wellbeing,THEN,move",24,25,2,0.75
+1,"IF,medium berries,medium health,low society wellbeing,THEN,throw",25,74,50,0.75
+1,"IF,low berries,medium health,low society wellbeing,THEN,throw",27,74,48,1.0
+1,"IF,low berries,low health,low society wellbeing,THEN,eat",31,74,44,1.0
+1,"IF,no berries,medium health,low society wellbeing,THEN,move",31,74,44,1.0
+1,"IF,no berries,low health,low society wellbeing,THEN,move",47,74,28,0.75
+1,"IF,low berries,medium health,medium society wellbeing,THEN,throw",51,74,24,0.75

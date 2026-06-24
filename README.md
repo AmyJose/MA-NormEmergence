@@ -4,7 +4,7 @@ A Python/Mesa implementation of a norm emergence environment for studying cooper
 
 The project investigates how behavioural norms emerge from repeated interactions between autonomous agents competing for limited resources. Agents forage for food, consume resources to maintain their health, and may choose to share resources with others. Individual behaviours are tracked over time and analysed to identify emergent norms, patterns of social coordination and the influence of different decision-making architectures.
 
-The environment serves as an experimental platform for comparing traditional rule-based policies with LLM-controlled agents operating withing mixed populations.
+The environment serves as an experimental platform for comparing traditional rule-based policies with LLM-controlled agents operating within mixed populations.
 
 ## Features
 ### Environment

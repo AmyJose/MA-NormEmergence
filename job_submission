@@ -3,7 +3,7 @@
 #SBATCH --partition=ampere
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
-#SBATCH --time=06:30:00
+#SBATCH --time=03:00:00
 #SBATCH --output=llm-norm-emergence-exp1.out
 
 echo "===== JOB INFO ====="

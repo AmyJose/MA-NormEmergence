@@ -1,0 +1,29 @@
+{
+    "rng": 6,
+    "num_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 75,
+    "prompt_type": "None",
+    "rule_policy": "utilitarian",
+    "run_dir": "saved_runs/exp1/None_utilitarian_seed_6",
+    "agents": {
+        "0": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "utilitarian"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "utilitarian"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "utilitarian"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "utilitarian"
+        }
+    }
+}
