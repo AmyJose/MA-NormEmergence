@@ -26,7 +26,7 @@ def plot_metric(df, metric, output_dir, run_name, title=None):
     plt.savefig(output_dir / f"{run_name}_{metric}.png")
     plt.close()
 
-def plot_health_matrix(exp_dir, seed, output_file):
+def plot_matrix(exp_dir, seed, output_file, metric):
     rows = ["None", "selfish", "cooperative", "baseline"]
     cols = ["selfish", "selfless", "utilitarian"]
 
@@ -66,7 +66,7 @@ def plot_health_matrix(exp_dir, seed, output_file):
 
                 ax.plot(
                     group["step"],
-                    group["health"],
+                    group[metric],
                     label=f"Agent {agent_id}",
                     color=colours.get(agent_id)
                 )
@@ -87,7 +87,7 @@ def plot_health_matrix(exp_dir, seed, output_file):
     )
 
     fig.supxlabel("Step")
-    fig.supylabel("Health")
+    fig.supylabel(metric)
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.savefig(output_file, dpi=300)
@@ -117,7 +117,8 @@ def main():
     for metric in metrics:
         plot_metric(df, metric, plots_dir, run_name)
 
-    plot_health_matrix(Path("exp1"), 5, plots_dir / "health_matrix")
+    plot_matrix(Path("exp1"), 5, plots_dir / "health_matrix", "health")
+    plot_matrix(Path("exp1"), 5, plots_dir / "wellbeing_matrix", "wellbeing")
 
 
 if __name__ == "__main__":
