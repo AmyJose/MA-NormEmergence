@@ -1,51 +1,56 @@
 class RuleBasedDecisionModule:
-    def __init__(self, agent):
+    def __init__(self, agent, policy_type="utilitarian"):
         self.agent = agent
-        self.epsilon = 0.1
-        
-        rng = self.agent.random
-
-        self.critical_health_threshold = (
-            0.5 + rng.uniform(-0.05, 0.05)
-        )
-
-        self.low_health_threshold = (
-            1.0 + rng.uniform(-0.2, 0.2)
-        )
+        self.policy_type = policy_type
 
     def decide(self, observation:dict) -> str:
-        return self.choose_action(observation)
+        if self.policy_type == "selfish":
+            return self._selfish(observation)
 
-    def choose_action(self, observation):
-        """
-        Choose one action from:
-        north, south, east, west, eat, throw_<agent_id>
-        """
+        if self.policy_type == "utilitarian":
+            return self._utilitarian(observation)
 
-        #add randomness
-        if self.agent.random.random() < self.epsilon:
-            return self.agent.random.choice(self.agent.actions)
+        if self.policy_type == "selfless":
+            return self._selfless(observation)
 
-        health = observation["health"]
-        berries = observation["berries"]
-
-        #if carrying berries and health is low, eat
-        if berries > 0 and health < self.critical_health_threshold:
+        raise ValueError(f"Unknown policy: {self.policy_type}")
+    
+    #selfish policy
+    def _selfish(self, obs):
+        if obs["berries"] > 0:
             return "eat"
         
-        # 2. If low-ish health, eat rather than risk throwing
-        if berries > 0 and health < self.low_health_threshold:
+        return self._move_towards_nearest_berry()
+
+    #utiliarianism policy
+    def _utilitarian(self, obs):
+        #if i have a berry and cant throw it, just eat
+        if obs["berries"] > 0 and obs["health"] < self.agent.throw_berry_threshold:
             return "eat"
-        
-        # if carrying berries and someone else is worse off, throw
-        if berries > 0 and health >= self.agent.throw_berry_threshold:
-            worst_off_agent = self._get_worst_off_other_agent()
 
-            if worst_off_agent is not None:
-                if worst_off_agent.get_wellbeing() < self.agent.get_wellbeing():
-                    return f"throw_{worst_off_agent.id}"
+        # if i have a berry and CAN throw, decide who to throw it to
+        if obs["berries"] > 0 and obs["health"] >= self.agent.throw_berry_threshold:
+            worst = self._get_worst_off_other_agent()
+            if (
+                worst is not None
+                and worst.get_wellbeing() < self.agent.get_wellbeing()
+            ):
+                return f"throw_{worst.id}"
 
-        #otherwise, move towards nearest berry
+        #otherwise, just move
+        return self._move_towards_nearest_berry()
+    
+    #selfless policy : others matter more
+    def _selfless(self, obs):
+        if obs["berries"] > 0 and obs["health"] >= self.agent.throw_berry_threshold:
+            worst = self._get_worst_off_other_agent()
+
+            if worst is not None:
+                return f"throw_{worst.id}"
+
+        if obs["berries"] > 0:
+            return "eat"
+
         return self._move_towards_nearest_berry()
     
     def _get_worst_off_other_agent(self):
@@ -64,3 +69,4 @@ class RuleBasedDecisionModule:
         )
     def _move_towards_nearest_berry(self):
         return self.agent.moving_module.direction_towards_nearest_berry()
+

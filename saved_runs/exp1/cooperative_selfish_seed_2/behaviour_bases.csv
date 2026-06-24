@@ -1,0 +1,23 @@
+episode,agent_id,behaviour,count,decision_module
+1,0,"IF,no berries,high health,medium society wellbeing,THEN,move",21,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,throw",3,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,move",4,LLMDecisionModule
+1,0,"IF,medium berries,medium health,medium society wellbeing,THEN,eat",1,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,eat",5,LLMDecisionModule
+1,0,"IF,low berries,high health,high society wellbeing,THEN,move",3,LLMDecisionModule
+1,0,"IF,medium berries,high health,high society wellbeing,THEN,throw",2,LLMDecisionModule
+1,0,"IF,medium berries,high health,high society wellbeing,THEN,eat",2,LLMDecisionModule
+1,0,"IF,low berries,high health,high society wellbeing,THEN,eat",8,LLMDecisionModule
+1,0,"IF,no berries,high health,high society wellbeing,THEN,move",26,LLMDecisionModule
+1,1,"IF,no berries,high health,medium society wellbeing,THEN,move",24,RuleBasedDecisionModule
+1,1,"IF,low berries,high health,medium society wellbeing,THEN,eat",9,RuleBasedDecisionModule
+1,1,"IF,no berries,high health,high society wellbeing,THEN,move",32,RuleBasedDecisionModule
+1,1,"IF,low berries,high health,high society wellbeing,THEN,eat",10,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,medium society wellbeing,THEN,move",25,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,medium society wellbeing,THEN,eat",10,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,high society wellbeing,THEN,move",29,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,high society wellbeing,THEN,eat",11,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,medium society wellbeing,THEN,move",24,RuleBasedDecisionModule
+1,3,"IF,low berries,high health,medium society wellbeing,THEN,eat",10,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,high society wellbeing,THEN,move",32,RuleBasedDecisionModule
+1,3,"IF,low berries,high health,high society wellbeing,THEN,eat",9,RuleBasedDecisionModule

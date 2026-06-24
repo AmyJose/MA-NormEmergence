@@ -5,13 +5,13 @@ import pandas as pd
 import os
 import json
 from pathlib import Path
-from llm_client import HuggingFaceClient, OllamaClient
+from llm_client import HuggingFaceClient, OllamaClient, IsambardClient
 from modules.llm_decisions import LLMDecisionModule
 from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, num_agents=4, num_berries=8, width=8, height=4, prompt_type="selfish"):
+    def __init__(self, rng, llm_client, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline", rule_policy="utilitarian", run_dir="data/results/current_run"):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -29,14 +29,19 @@ class HarvestModel(mesa.Model):
         self.spawn_berries()
 
         #llm_client = HuggingFaceClient()
-        llm_client = OllamaClient()
+        #llm_client = OllamaClient()
+        #llm_client = IsambardClient(model_path=(f"{os.environ['SCRATCHDIR']}/models/qwen3-8b"))
+
         self.prompt_type = prompt_type
+        self.rule_policy = rule_policy
+        self.run_dir = Path(run_dir)
 
         self.emerged_norms = {}
-        self.max_steps = 300
+        self.max_steps = 75
         self.episode_done = False
 
         self.episode = 1
+        self.episode_step = 0
 
         self.metadata ={
             "rng": rng,
@@ -44,7 +49,11 @@ class HarvestModel(mesa.Model):
             "num_berries": num_berries,
             "width": width,
             "height": height,
-            "steps": self.max_steps,
+            "max_steps": self.max_steps,
+
+            "prompt_type": self.prompt_type,
+            "rule_policy": self.rule_policy,
+            "run_dir": str(self.run_dir),
 
             "agents": {},
         }
@@ -56,7 +65,7 @@ class HarvestModel(mesa.Model):
             if i == 0:
                 decision_module = LLMDecisionModule(llm_client, agent, prompt_name=self.prompt_type)
             else:
-                decision_module = RuleBasedDecisionModule(agent)
+                decision_module = RuleBasedDecisionModule(agent, policy_type=self.rule_policy)
 
             self.metadata["agents"][str(i)] = {
                 "decision_module": type(decision_module).__name__
@@ -64,16 +73,12 @@ class HarvestModel(mesa.Model):
 
             if isinstance(decision_module, RuleBasedDecisionModule):
                 self.metadata["agents"][str(i)].update({
-                    "critical_health_threshold":
-                        decision_module.critical_health_threshold,
-
-                    "low_health_threshold":
-                        decision_module.low_health_threshold,
+                    "policy": decision_module.policy_type,
                 })
 
             if isinstance(decision_module, LLMDecisionModule):
                 self.metadata["agents"][str(i)].update({
-                    "model": llm_client.model,
+                    "model": llm_client.model_name,
                     "temp": llm_client.temperature,
                     "prompt_name": decision_module.prompt_name,
                     "prompt_text": decision_module.prompt_text
@@ -90,27 +95,31 @@ class HarvestModel(mesa.Model):
         self.write_metadata()
     
     def step(self):
-        if self.episode_done:
-            return
+        #if self.episode_done:
+            #self.reset_episode()
         
         self.agents.shuffle_do("step")
 
         emerged_norms = self.check_emergent_norms()
         self.update_emerged_norms(emerged_norms)
 
-        if self.steps >= self.max_steps or all(agent.dead for agent in self.harvest_agents):
+        if self.episode_step+1 >= self.max_steps or all(agent.dead for agent in self.harvest_agents):
             self._collect_model_episode_data()
             self.write_emerged_norms()
             self.write_behaviour_bases()
             self.episode_done = True
         
         self._collect_agent_data()
+        self.episode_step += 1
 
     def spawn_berries(self):
         self.berries.clear()
 
         for _ in range(self.num_berries):
             berry_cell = self.grid.all_cells.select_random_cell()
+            #no repeat cells
+            while berry_cell in self.berries:
+                berry_cell = self.grid.all_cells.select_random_cell()
             self.berries.add(berry_cell)
 
     def spawn_one_berry(self):
@@ -191,13 +200,13 @@ class HarvestModel(mesa.Model):
             #if first time were seeing this norm:
             if behaviour not in self.emerged_norms:
                 self.emerged_norms[behaviour] = {
-                    "first_seen": self.steps,
-                    "last_seen": self.steps,
+                    "first_seen": self.episode_step,
+                    "last_seen": self.episode_step,
                     "times_emerged": 1,
                     "max_adoption": adoption_rate,
                     "history":[
                         {
-                            "step": self.steps,
+                            "step": self.episode_step,
                             "adoption_rate": adoption_rate
                         }
                     ]
@@ -205,7 +214,7 @@ class HarvestModel(mesa.Model):
             # we've seen the norm before
             else:
                 norm = self.emerged_norms[behaviour]
-                norm["last_seen"] = self.steps
+                norm["last_seen"] = self.episode_step
                 norm["times_emerged"] += 1
 
                 norm["max_adoption"] = max(
@@ -214,7 +223,7 @@ class HarvestModel(mesa.Model):
                 )
                 norm["history"].append(
                     {
-                        "step" : self.steps,
+                        "step" : self.episode_step,
                         "adoption_rate": adoption_rate
                     }
                 )
@@ -225,14 +234,20 @@ class HarvestModel(mesa.Model):
         for behaviour, stats in self.emerged_norms.items():
 
             rows.append({
+                "episode": self.episode,
                 "behaviour": behaviour,
                 "first_seen": stats["first_seen"],
                 "last_seen": stats["last_seen"],
                 "times_emerged": stats["times_emerged"],
                 "max_adoption": stats["max_adoption"],
             })
-        path = Path(f"data/results/current_run/emerged_norms_{self.filepath}.csv")
-        pd.DataFrame(rows).to_csv(path, index=False)
+        if rows:
+            pd.DataFrame(rows).to_csv(
+                self.emerged_norms_path,
+                mode="a",
+                header=False,
+                index=False,
+            )
 
     def write_behaviour_bases(self):
         rows = []
@@ -246,12 +261,17 @@ class HarvestModel(mesa.Model):
                     "decision_module": type(agent.decision_module).__name__,
                 })
 
-        path = Path(f"data/results/current_run/behaviour_bases_{self.filepath}.csv")
-        pd.DataFrame(rows).to_csv(path, index=False)
+        if rows:
+            pd.DataFrame(rows).to_csv(
+                self.behaviour_bases_path,
+                mode="a",
+                header=False,
+                index=False,
+            )
 
     def write_metadata(self):
         with open(
-            "data/results/current_run/metadata.json",
+            self.run_dir / "metadata.json",
             "w"
         ) as f:
             json.dump(
@@ -260,8 +280,21 @@ class HarvestModel(mesa.Model):
                 indent=4
             )
 
+    def reset_episode(self):
+        self.episode += 1
+        self.episode_step = 0
+        self.episode_done = False
+
+        self.emerged_norms = {}
+
+        self.berries.clear()
+        self.spawn_berries()
+
+        for agent in self.harvest_agents:
+            agent.reset()
+
     def _init_reporters(self, filepath=""):
-        os.makedirs("data/results/current_run", exist_ok=True)
+        self.run_dir.mkdir(parents=True, exist_ok=True)
 
         self.filepath = filepath
 
@@ -303,24 +336,50 @@ class HarvestModel(mesa.Model):
             "agent_id": [],
             "health": [],
             "berries": [],
-            "distance_to_nearest_berry": [],
             "reasoning": [],
+            "fallback_used":[],
             "action": [],
         })
 
-        self.agent_report_path = Path(
-            f"data/results/current_run/agent_reports_{self.filepath}.csv"
-        )
-        self.model_episode_report_path = Path(
-            f"data/results/current_run/model_episode_reports_{self.filepath}.csv"
-        )
-        self.llm_reasoning_path = Path(
-            f"data/results/current_run/llm_reasoning_{self.filepath}.jsonl"
-        )
+
+        self.agent_report_path = self.run_dir / "agent_reports.csv"
+
+        self.model_episode_report_path = self.run_dir / "model_episode_reports.csv"
+        
+        self.llm_reasoning_path =self.run_dir / "llm_reasoning.jsonl"
+        self.behaviour_bases_path = self.run_dir / "behaviour_bases.csv"
+        self.emerged_norms_path = self.run_dir / "emerged_norms.csv"
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
         self.model_episode_reporter.to_csv(self.model_episode_report_path, index=False)
         self.llm_reasoning_reporter.to_csv(self.llm_reasoning_path, index=False)
+
+        pd.DataFrame(
+            columns=[
+                "episode",
+                "agent_id",
+                "behaviour",
+                "count",
+                "decision_module",
+            ]
+        ).to_csv(
+            self.behaviour_bases_path,
+            index=False
+        )
+
+        pd.DataFrame(
+            columns=[
+                "episode",
+                "behaviour",
+                "first_seen",
+                "last_seen",
+                "times_emerged",
+                "max_adoption",
+            ]
+        ).to_csv(
+            self.emerged_norms_path,
+            index=False
+        )
 
     def _collect_agent_data(self):
         rows = []
@@ -329,7 +388,7 @@ class HarvestModel(mesa.Model):
             rows.append({
                 "agent_id": agent.id,
                 "episode": self.episode,
-                "step": self.steps,
+                "step": self.episode_step,
                 "berries": agent.berries,
                 "berries_consumed": agent.berries_consumed,
                 "berries_foraged": agent.berries_foraged,
@@ -343,11 +402,12 @@ class HarvestModel(mesa.Model):
             if isinstance(agent.decision_module,LLMDecisionModule):
                 reasoning_row = {
                     "episode": self.episode,
-                    "step": self.steps,
+                    "step": self.episode_step,
                     "agent_id": agent.id,
                     "health": agent.health,
                     "berries": agent.berries,
                     "reasoning": agent.last_reasoning,
+                    "fallback_used": agent.last_fallback_used,
                     "action": agent.current_action,
                 }
                 with open(self.llm_reasoning_path, "a", encoding="utf-8") as f:
@@ -364,7 +424,7 @@ class HarvestModel(mesa.Model):
 
         row = {
             "episode": self.episode,
-            "end_step": self.steps,
+            "end_step": self.episode_step,
             "max_berries": max(berries),
             "mean_berries": sum(berries) / len(berries),
             "max_berries_consumed": max(berries_consumed),

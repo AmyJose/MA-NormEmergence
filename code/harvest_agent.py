@@ -1,6 +1,7 @@
 from mesa.discrete_space import CellAgent
 from modules.norms import NormsModule
 from modules.moving import MovingModule
+from modules.llm_decisions import LLMDecisionModule
 
 class HarvestAgent(CellAgent):
     """Agent in the model environment"""
@@ -10,8 +11,9 @@ class HarvestAgent(CellAgent):
 
         self.id = id
         self.dead = False
+        self.start_health = 1.0
 
-        self.health = 2.0
+        self.health = self.start_health
         self.berries = 0
 
         self.berries_consumed = 0
@@ -21,10 +23,11 @@ class HarvestAgent(CellAgent):
 
         self.actions = self._generate_actions()
         self.last_reasoning = ""
+        self.last_fallback_used = False
 
-        self.health_decay = 0.03
-        self.berry_health_payoff = 0.2
-        self.throw_berry_threshold = 0.6
+        self.health_decay = 0.06
+        self.berry_health_payoff = 0.35
+        self.throw_berry_threshold = 0.3
     
     def assign_modules(self, decision_module):
         self.norms_module = NormsModule(self)
@@ -63,6 +66,28 @@ class HarvestAgent(CellAgent):
             "society_wellbeing" : self.model.get_society_wellbeing()
         }
 
+    def reset(self):
+        self.dead = False
+
+        self.health = self.start_health
+        self.berries = 0
+
+        self.berries_consumed = 0
+        self.berries_foraged = 0
+        self.berries_thrown = 0
+
+        self.current_action = None
+        self.last_reasoning =  ""
+        self.last_fallback_used = False
+
+        self.norms_module.behaviour_base = {}
+
+        cell = self.model.random.choice(list(self.model.grid.all_cells.cells))
+        self.move_to(cell)
+
+        if isinstance(self.decision_module, LLMDecisionModule):
+            self.decision_module.reset()
+
     def _generate_actions(self):
         actions = ["north","south", "east", "west", "eat"]
 
@@ -89,6 +114,12 @@ class HarvestAgent(CellAgent):
         self.health -= self.health_decay
         if self.health < 0:
             self.health = 0
+            #reallocate any berries currently being held by the dead agent
+            uneaten_berries = self.berries
+            if uneaten_berries > 0:
+                for _ in range(uneaten_berries-1):
+                    self.model.spawn_one_berry()
+                    
             self.dead = True
 
     def _forage(self):
@@ -96,13 +127,13 @@ class HarvestAgent(CellAgent):
             self.model.berries.remove(self.cell)
             self.berries += 1
             self.berries_foraged += 1
+            self.model.spawn_one_berry()
 
     def _eat(self):
         if self.berries > 0:
             self.health += self.berry_health_payoff
             self.berries -= 1
             self.berries_consumed += 1
-            self.model.spawn_one_berry()
             return True
         return False
 

@@ -30,6 +30,14 @@ class LLMDecisionModule:
             return f.read()
 
 
+    def reset(self):
+        self.messages = [
+            {
+                "role": "system",
+                "content": self.prompt_text,
+            }
+        ]
+
     def decide(self, observation: dict) -> str:
         self.messages.append({
             "role":"user",
@@ -50,18 +58,31 @@ class LLMDecisionModule:
 
         action = self.parse_action(action_text)
 
+        fallback_used = False
+
         if action is None:
-            return self.get_user_action(reasoning)
+            fallback_used = True
+            #return self.get_user_action(reasoning)
+            action = self.default_action(observation)
+
+        self.agent.last_reasoning = reasoning
+        self.agent.last_fallback_used = fallback_used
         
         return action
-    
+
+    def default_action(self, observation: dict):
+        """
+        Safe fallback when LLM output is invalid or incomplete.
+        """
+        return self.convert_action_token("MOVE")
+
     def observation_to_message(self, obs: dict) -> str:
         wellbeing_lines = "\n".join(
             f"agent {i} wellbeing: {w}"
             for i, w in enumerate(obs["society_wellbeing"])
         )
         return f"""
-Step: {self.agent.model.steps}
+Step: {self.agent.model.episode_step}
 
 Here is an observation of the current state: 
     your current health: {obs["health"]},
@@ -92,7 +113,7 @@ Return one of these strings and nothing else.
 
         return self.convert_action_token(action)
     
-    def trim_history(self, max_turns=8):
+    def trim_history(self, max_turns=5):
         system_message = self.messages[0]
 
         non_system_messages = self.messages[1:]
