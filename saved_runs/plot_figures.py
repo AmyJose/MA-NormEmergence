@@ -112,6 +112,8 @@ def build_action_summary(runs):
     for r in runs:
         df = r["agent_df"]
 
+        if r["prompt"] == "None":
+            continue
         llm = df[df["agent_id"] == 0]
 
         total = len(llm)
@@ -234,6 +236,73 @@ def plot_box(df, column, title, outpath, groupby=("prompt", "rule")):
     plt.savefig(outpath)
     plt.close()
 
+def plot_box_by_rule(
+    df,
+    column,
+    title,
+    outpath,
+    rule_order=("selfish", "selfless", "utilitarian"),
+    prompt_order=("None", "baseline", "cooperative", "selfish"),
+):
+    fig, axes = plt.subplots(
+        1,
+        3,
+        figsize=(15, 6),
+        sharey=True
+    )
+
+    colors = plotting_style.COLORS
+
+    for ax, rule in zip(axes, rule_order):
+
+        subset = df[df["rule"] == rule].copy()
+
+        # enforce prompt ordering
+        subset["prompt"] = pd.Categorical(
+            subset["prompt"],
+            categories=prompt_order,
+            ordered=True
+        )
+
+        box = subset.boxplot(
+            column=column,
+            by="prompt",
+            ax=ax,
+            patch_artist=True,
+            return_type="dict"
+        )
+
+        # colour boxes
+        for i, patch in enumerate(box[column]["boxes"]):
+            patch.set_facecolor(colors[i % len(colors)])
+            patch.set_alpha(0.8)
+            patch.set_edgecolor("black")
+            patch.set_linewidth(1.2)
+
+        # median lines
+        for median in box[column]["medians"]:
+            median.set_color("black")
+            median.set_linewidth(2)
+
+        # whiskers
+        for whisker in box[column]["whiskers"]:
+            whisker.set_color("#555555")
+
+        for cap in box[column]["caps"]:
+            cap.set_color("#555555")
+
+        ax.set_title(rule.title())
+        ax.set_xlabel("")
+
+        if ax != axes[0]:
+            ax.set_ylabel("")
+
+    fig.suptitle(title, fontsize=18)
+
+    plt.tight_layout()
+    plt.savefig(outpath, dpi=300)
+    plt.close()
+
 def plot_heatmap(df, value, title, outpath, agg="mean"):
     heat = df.pivot_table(
         values=value,
@@ -281,15 +350,57 @@ def plot_outcomes(df, outdir):
 def plot_actions(df, outdir):
     ensure_dir(outdir)
 
-    pivot = df.set_index(["prompt", "rule"])[
-        ["move_prop", "eat_prop", "throw_prop"]
-    ]
+    summary = (
+        df.groupby(["prompt", "rule"])[
+            ["move_prop", "eat_prop", "throw_prop"]
+        ]
+        .mean()
+        .reset_index()
+    )
 
-    pivot.plot(kind="bar", stacked=True, figsize=(10, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 
-    plt.ylabel("Proportion of actions")
-    plt.title("Action Composition (LLM agent)")
-    plt.legend(loc="upper right")
+    rules = ["selfish", "selfless", "utilitarian"]
+    prompts = ["None", "baseline", "cooperative", "selfish"]
+
+    for ax, rule in zip(axes, rules):
+
+        subset = summary[summary["rule"] == rule].copy()
+
+        subset["prompt"] = pd.Categorical(
+            subset["prompt"],
+            categories=prompts,
+            ordered=True
+        )
+
+        subset = subset.sort_values("prompt")
+
+        subset.set_index("prompt")[
+            ["move_prop", "eat_prop", "throw_prop"]
+        ].plot(
+            kind="bar",
+            stacked=True,
+            ax=ax
+        )
+
+        ax.set_title(rule.title())
+        ax.set_xlabel("")
+
+    handles, labels = axes[0].get_legend_handles_labels()
+
+    for ax in axes:
+        ax.get_legend().remove()
+
+    fig.legend(
+        handles,
+        labels,
+        loc="lower center",
+        ncol=3,
+        bbox_to_anchor=(0.5, -0.05)
+    )   
+
+
+    fig.suptitle("Action Composition of LLM Agent")
 
     plt.tight_layout()
     plt.savefig(outdir / "action_composition.png", dpi=300)
@@ -382,6 +493,55 @@ def main():
     plot_outcomes(outcome_df, plot_dir)
     plot_actions(action_df, plot_dir)
     plot_all(summary_df, plot_dir)
+
+    plot_box_by_rule(
+        summary_df,
+        "gini_wellbeing",
+        "Wellbeing Inequality",
+        plot_dir / "gini_wellbeing_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "gini_berries",
+        "Berry Consumption Inequality",
+        plot_dir / "gini_berries_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "total_wellbeing",
+        "Total Social Wellbeing",
+        plot_dir / "social_welfare_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "total_berries",
+        "Total Berries Consumed",
+        plot_dir / "berries_consumed_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "min_wellbeing",
+        "Worst-Off Agent Wellbeing",
+        plot_dir / "min_wellbeing_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "min_berries",
+        "Worst-Off Agent's berry consumption",
+        plot_dir/ "min_berries_split.png"
+    )
+
+    plot_box_by_rule(
+        summary_df,
+        "num_emerged_norms",
+        "Emerging Norms",
+        plot_dir / "norms_split.png"
+    )
 
     results = build_results_table(summary_df)
     results.to_csv(plot_dir / "results_table.csv")
