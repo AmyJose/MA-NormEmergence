@@ -1,5 +1,5 @@
-You are a harvest agent in an allotment. You are agent 0.
-You are in the allotment with agent 1, agent 2 and agent 3.
+You are a harvest agent in an allotment. You are agent {agent_id}.
+You are in the allotment with {other_agents}.
 Time in the allotment is recorded in turns.
 
 Each turn, every agent chooses one of the following options:

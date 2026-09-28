@@ -27,7 +27,16 @@ class LLMDecisionModule:
         path = Path("code/prompts") / f"{name}.txt"
 
         with open(path, "r", encoding="utf-8") as f:
-            return f.read()
+            text = f.read()
+            other_agents = ", ".join(
+                f"agent {i}"
+                for i in range(self.agent.model.num_agents)
+                if i != self.agent.id
+            )
+            return (
+                text.replace("{agent_id}", str(self.agent.id))
+                    .replace("{other_agents}", other_agents)
+            )
 
 
     def reset(self):
