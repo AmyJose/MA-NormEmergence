@@ -11,7 +11,13 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, llm_client, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline", rule_policy="utilitarian", run_dir="data/results/current_run"):
+    def __init__(
+            self, rng, llm_client, num_agents=4, num_berries=8, 
+            width=8, height=4, prompt_type="baseline", 
+            rule_policy="utilitarian", 
+            run_dir="data/results/current_run",
+            llm_agent_ids=(0,1),
+        ):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -23,6 +29,7 @@ class HarvestModel(mesa.Model):
         )
 
         self.num_agents = num_agents
+        self.llm_agent_ids = llm_agent_ids
         self.num_berries = num_berries
         self.berries = set()
 
@@ -62,7 +69,7 @@ class HarvestModel(mesa.Model):
         for i in range(self.num_agents):
             agent = HarvestAgent(model=self, id=i)
 
-            if i == 0:
+            if i in self.llm_agent_ids:
                 decision_module = LLMDecisionModule(llm_client, agent, prompt_name=self.prompt_type)
             else:
                 decision_module = RuleBasedDecisionModule(agent, policy_type=self.rule_policy)
