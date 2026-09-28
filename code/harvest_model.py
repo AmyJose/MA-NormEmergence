@@ -359,7 +359,7 @@ class HarvestModel(mesa.Model):
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
         self.model_episode_reporter.to_csv(self.model_episode_report_path, index=False)
-        self.llm_reasoning_reporter.to_csv(self.llm_reasoning_path, index=False)
+        self.llm_reasoning_path.write_text("", encoding="utf-8")
 
         pd.DataFrame(
             columns=[

@@ -1,11 +1,11 @@
 import os
 import requests
 import time
-import torch
+#import torch
 import re
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
-from transformers import AutoTokenizer, AutoModelForCausalLM
+#from transformers import AutoTokenizer, AutoModelForCausalLM
 
 load_dotenv()
 
