@@ -22,17 +22,13 @@ Using the observation and the information provided, choose ONE action.
 You must return exactly one action token.
 
 Valid actions:
-MOVE, EAT, THROW_1, THROW_2, THROW_3
+{valid_actions}
 
 Return one of these strings and nothing else.
 If you include explanation, punctation, markdown or extra text, your response is invalid.
 
 Valid response examples:
-MOVE
-EAT
-THROW_1
-THROW_2
-THROW_3
+{valid_examples}
 
 Invalid response examples:
 THROW_4

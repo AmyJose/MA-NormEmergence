@@ -36,6 +36,8 @@ class LLMDecisionModule:
             return (
                 text.replace("{agent_id}", str(self.agent.id))
                     .replace("{other_agents}", other_agents)
+                    .replace("{valid_actions}", ", ".join(self.valid_actions))
+                    .replace("{valid_examples}", "\n".join(self.valid_actions))
             )
 
 
