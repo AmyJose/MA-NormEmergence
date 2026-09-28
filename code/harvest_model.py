@@ -140,11 +140,11 @@ class HarvestModel(mesa.Model):
         return None
     
     def get_society_wellbeing(self):
-        return [
-            agent.get_wellbeing()
+        return {
+            agent.id: agent.get_wellbeing()
             for agent in self.harvest_agents
             if not agent.dead
-        ]
+        }
 
     def check_emergent_norms(self, adoption_threshold=0.75, dominance_threshold=0.6):
         all_states = set()

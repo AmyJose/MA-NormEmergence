@@ -90,7 +90,7 @@ class LLMDecisionModule:
     def observation_to_message(self, obs: dict) -> str:
         wellbeing_lines = "\n".join(
             f"agent {i} wellbeing: {w}"
-            for i, w in enumerate(obs["society_wellbeing"])
+            for i, w in obs["society_wellbeing"].items()
         )
         return f"""
 Step: {self.agent.model.episode_step}
@@ -99,7 +99,7 @@ Here is an observation of the current state:
     your current health: {obs["health"]},
     number of berries in your bag: {obs["berries"]}, 
     your distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
-    your wellbeing: {obs['society_wellbeing'][0] if len(obs['society_wellbeing']) > 0 else "N/A"},
+    your wellbeing: {self.agent.get_wellbeing()},
     {wellbeing_lines}
 
 Valid actions:
