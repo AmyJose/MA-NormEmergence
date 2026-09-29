@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=llm-norm-emergence
+#SBATCH --job-name=llm-mas-ethics
 #SBATCH --partition=ampere
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=4
 #SBATCH --time=01:00:00
-#SBATCH --output=llm-norm-emergence-exp1.out
+#SBATCH --output=pilot-two-llms-%j.out
 
 echo "===== JOB INFO ====="
 echo "Job ID: $SLURM_JOB_ID"
@@ -28,6 +28,11 @@ echo
 export MODEL_DIR=$SCRATCHDIR/models
 
 echo "===== RUNNING SCRIPT ====="
-python code/run.py
+python code/run_condition.py \
+	--model qwen3_8b \
+	--prompt baseline \
+	--rule-policy selfish \
+	--seed 42 \
+	--max-steps 3
 echo
 echo "finished at $(date)"
