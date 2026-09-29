@@ -17,6 +17,7 @@ class HarvestModel(mesa.Model):
             rule_policy="utilitarian", 
             run_dir="data/results/current_run",
             llm_agent_ids=(0,1),
+            max_steps = 75,
         ):
         super().__init__(rng=rng)
         self.width = width
@@ -44,9 +45,12 @@ class HarvestModel(mesa.Model):
         self.run_dir = Path(run_dir)
 
         self.emerged_norms = {}
-        self.max_steps = 75
-        self.episode_done = False
 
+        if max_steps < 1:
+            raise ValueError("max_steps must be at least 1")
+        self.max_steps = max_steps
+
+        self.episode_done = False
         self.episode = 1
         self.episode_step = 0
 

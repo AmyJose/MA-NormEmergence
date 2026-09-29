@@ -19,13 +19,20 @@ def main():
         choices=("selfish", "utilitarian", "selfless"),
     )
     parser.add_argument("--seed", required=True, type=int)
+    parser.add_argument("--max-steps", type=int, default=75)
     args = parser.parse_args()
 
     config = get_model_config(args.model)
     model_path = Path(os.environ["SCRATCHDIR"]) / "models" / config["local_dir"]
 
-    run_dir = (
+    output_root = (
         Path("saved_runs/exp2")
+        if args.max_steps == 75
+        else Path("saved_runs/pilots") / f"steps_{args.max_steps}"
+    )
+
+    run_dir = (
+        output_root
         / args.model
         / args.prompt
         / args.rule_policy
@@ -43,6 +50,7 @@ def main():
         rng=args.seed,
         llm_client=client,
         llm_agent_ids=(0, 1),
+        max_steps=args.max_steps,
         prompt_type=args.prompt,
         rule_policy=args.rule_policy,
         run_dir=run_dir,
