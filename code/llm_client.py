@@ -78,11 +78,13 @@ class OllamaClient:
         )
 
 class IsambardClient():
-    def __init__(self, model_path, temperature=0.0, max_new_tokens=3000):
+    def __init__(self, model_path, temperature=0.0, max_new_tokens=3000,
+                 model_id = None,):
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
 
-        self.model_name= model_path
+        self.model_name= model_id or model_path
+        self.model_path = model_path
 
         #load tokeniser from model_path
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)

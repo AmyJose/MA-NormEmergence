@@ -4,11 +4,19 @@ from pathlib import Path
 
 from harvest_model import HarvestModel
 from llm_client import IsambardClient
+from model_config import get_model_config
 
-model_path = Path(os.environ["SCRATCHDIR"]) / "models/qwen3-8b"
+model_name = "qwen3_8b"
+config = get_model_config(model_name)
+model_path = Path(os.environ["SCRATCHDIR"]) / "models"/ config["local_dir"]
+
 run_dir = Path("saved_runs/smoke_two_llms_qwen_raw")
 
-client = IsambardClient(model_path=str(model_path))
+client = IsambardClient(
+    model_path=str(model_path),
+    model_id=config["hf_id"],
+    max_new_tokens=config["max_new_tokens"],
+    )
 model = HarvestModel(
     rng=42,
     llm_client=client,
