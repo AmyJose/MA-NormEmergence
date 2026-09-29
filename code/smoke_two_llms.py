@@ -65,4 +65,24 @@ with tempfile.TemporaryDirectory() as run_dir:
     assert len(module_0.messages) == 1
     assert len(module_1.messages) == 1
 
+    client.chat = lambda messages: {
+        "content": "<think>EAT is an option, but I have no berries.</think>\nMOVE",
+        "thinking": "",
+    }
+
+    module_0.decide(agent_0.observe())
+    assert agent_0.last_reasoning == "EAT is an option, but I have no berries."
+    assert module_0.messages[-1]["content"] == "MOVE"
+    assert agent_0.last_fallback_used is False
+
+    client.chat = lambda messages: {
+        "content": "<think>I should consider MOVE, but",
+        "thinking": "",
+    }
+
+    module_0.decide(agent_0.observe())
+    assert agent_0.last_reasoning == "I should consider MOVE, but"
+    assert module_0.messages[-1]["content"] == ""
+    assert agent_0.last_fallback_used is True
+
 print("Two-LLM smoke test passed")
