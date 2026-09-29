@@ -414,6 +414,7 @@ class HarvestModel(mesa.Model):
                     "health": agent.health,
                     "berries": agent.berries,
                     "reasoning": agent.last_reasoning,
+                    "raw_response": agent.last_raw_response,
                     "fallback_used": agent.last_fallback_used,
                     "action": agent.current_action,
                 }

@@ -57,6 +57,7 @@ class LLMDecisionModule:
 
         self.trim_history()
         response = self.llm_client.chat(self.messages)
+        self.agent.last_raw_response = response.get("raw_response", response["content"])
 
         action_text = response["content"]
         reasoning = response["thinking"]

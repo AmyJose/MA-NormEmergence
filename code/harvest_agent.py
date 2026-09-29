@@ -23,6 +23,7 @@ class HarvestAgent(CellAgent):
 
         self.actions = self._generate_actions()
         self.last_reasoning = ""
+        self.last_raw_response = ""
         self.last_fallback_used = False
 
         self.health_decay = 0.06
@@ -78,6 +79,7 @@ class HarvestAgent(CellAgent):
 
         self.current_action = None
         self.last_reasoning =  ""
+        self.last_raw_response = ""
         self.last_fallback_used = False
 
         self.norms_module.behaviour_base = {}
