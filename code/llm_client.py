@@ -2,7 +2,6 @@ import os
 import requests
 import time
 import torch
-import re
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -131,18 +130,4 @@ class IsambardClient():
             "thinking": "",
             "raw_response": response,
         }
-
-    def parse_qwen_output(self, text:str):
-        think_match = re.search(r"<think>(.*?)</think>", text, re.DOTALL)
-        thinking = think_match.group(1).strip() if think_match else ""
-
-        #removing the thinking block
-        cleaned = re.sub(r"<think> .*?</think>", "", text, flags=re.DOTALL).strip()
-
-        #final action = last non-empty line
-        action = cleaned.splitlines()[-1].strip()
-
-        return{
-            "content": action,
-            "thinking": thinking
-        }
+    

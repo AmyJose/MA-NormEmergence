@@ -1,0 +1,20 @@
+MODEL_CONFIGS = {
+    #name: what the experiment scripts will select
+    "qwen3_8b": {
+        # the exact HF model
+        "hf_id": "Qwen/Qwen3-8B",
+        #where the weights are
+        "local_dir": "qwen3-8b",
+        "max_new_tokens": 3000,
+    },
+}
+
+
+def get_model_config(name):
+    try:
+        return MODEL_CONFIGS[name]
+    except KeyError as exc:
+        choices = ", ".join(sorted(MODEL_CONFIGS))
+        raise ValueError(
+            f"Unknown model {name!r}. Available models: {choices}"
+        ) from exc
