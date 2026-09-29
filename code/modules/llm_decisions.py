@@ -59,8 +59,21 @@ class LLMDecisionModule:
         response = self.llm_client.chat(self.messages)
         self.agent.last_raw_response = response.get("raw_response", response["content"])
 
-        action_text = response["content"]
-        reasoning = response["thinking"]
+        raw_text = response["content"]
+        think_match = re.search(r"<think>(.*?)</think>", raw_text, re.DOTALL)
+
+        if think_match:
+            reasoning = think_match.group(1).strip()
+            action_text = re.sub(
+                r"<think>.*?</think>", "", raw_text, flags=re.DOTALL
+            ).strip()
+        elif "<think>" in raw_text:
+            # The model ran out of tokens before finishing its reasoning.
+            reasoning = raw_text.split("<think>", 1)[1].strip()
+            action_text = ""
+        else:
+            reasoning = response.get("thinking", "")
+            action_text = raw_text.strip()
 
         self.messages.append({
             "role": "assistant",

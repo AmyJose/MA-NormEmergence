@@ -126,10 +126,11 @@ class IsambardClient():
             skip_special_tokens=True,
         )
         
-        parsed_response = self.parse_qwen_output(response)
-        parsed_response["raw_response"] = response
-
-        return parsed_response
+        return {
+            "content": response,
+            "thinking": "",
+            "raw_response": response,
+        }
 
     def parse_qwen_output(self, text:str):
         think_match = re.search(r"<think>(.*?)</think>", text, re.DOTALL)
