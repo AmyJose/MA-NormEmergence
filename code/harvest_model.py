@@ -328,6 +328,8 @@ class HarvestModel(mesa.Model):
             "health": [],
             "wellbeing": [],
             "action": [],
+            "requested_action": [],
+            "throw_target": [],
             "dead": [],
             "num_behaviours": [],
         })
@@ -415,10 +417,15 @@ class HarvestModel(mesa.Model):
                 "health": agent.health,
                 "wellbeing": agent.get_wellbeing(),
                 "action": agent.current_action,
+                "requested_action": agent.last_requested_action,
+                "throw_target": agent.last_throw_target,
                 "dead": agent.dead,
                 "num_behaviours": len(agent.norms_module.behaviour_base),
             })
-            if isinstance(agent.decision_module,LLMDecisionModule):
+            if (
+                isinstance(agent.decision_module, LLMDecisionModule)
+                and agent.last_decision_step == self.episode_step
+            ):
                 reasoning_row = {
                     "episode": self.episode,
                     "step": self.episode_step,
@@ -429,6 +436,9 @@ class HarvestModel(mesa.Model):
                     "raw_response": agent.last_raw_response,
                     "fallback_used": agent.last_fallback_used,
                     "action": agent.current_action,
+                    "requested_action": agent.last_requested_action,
+                    "throw_target": agent.last_throw_target,
+                    "observation": agent.last_observation,
                 }
                 with open(self.llm_reasoning_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(reasoning_row) + "\n")

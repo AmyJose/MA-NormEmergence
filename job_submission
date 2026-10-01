@@ -30,8 +30,8 @@ export MODEL_DIR=$SCRATCHDIR/models
 echo "===== RUNNING SCRIPT ====="
 python code/run_condition.py \
 	--model qwen3_8b \
-	--prompt baseline \
-	--rule-policy selfish \
+	--prompt unframed \
+	--rule-policy self_interested \
 	--seed 42 \
 	--max-steps 3
 echo

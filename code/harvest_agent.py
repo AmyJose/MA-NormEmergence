@@ -25,6 +25,10 @@ class HarvestAgent(CellAgent):
         self.last_reasoning = ""
         self.last_raw_response = ""
         self.last_fallback_used = False
+        self.last_decision_step = None
+        self.last_requested_action = None
+        self.last_throw_target = None
+        self.last_observation = None
 
         self.health_decay = 0.06
         self.berry_health_payoff = 0.35
@@ -40,7 +44,15 @@ class HarvestAgent(CellAgent):
             return
         
         observation = self.observe()
+        self.last_observation = observation
         action = self.decision_module.decide(observation)
+        self.last_decision_step = self.model.episode_step
+        self.last_requested_action = action
+        self.last_throw_target = (
+            int(action.split("_", 1)[1])
+            if action.startswith("throw_")
+            else None
+        )
 
         self.perform_transition(action)
     
@@ -57,6 +69,9 @@ class HarvestAgent(CellAgent):
         self.norms_module.update_behaviour_base(pre, executed_action)
 
     def get_wellbeing(self):
+        if self.dead:
+            return 0.0
+            
         return (self.health + (self.berries * self.berry_health_payoff)) / self.health_decay
     
     def observe(self):
@@ -81,6 +96,10 @@ class HarvestAgent(CellAgent):
         self.last_reasoning =  ""
         self.last_raw_response = ""
         self.last_fallback_used = False
+        self.last_decision_step = None
+        self.last_requested_action = None
+        self.last_throw_target = None
+        self.last_observation = None
 
         self.norms_module.behaviour_base = {}
 

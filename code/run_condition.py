@@ -21,6 +21,7 @@ def main():
     )
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--max-steps", type=int, default=75)
+    parser.add_argument("--output-root", type=Path, default=None)
     args = parser.parse_args()
 
     if args.rule_only:
@@ -29,7 +30,7 @@ def main():
     elif not args.model or not args.prompt:
         parser.error("Mixed runs require both --model and --prompt")
 
-    output_root = (
+    output_root = args.output_root or (
         Path("saved_runs/exp2")
         if args.max_steps == 75
         else Path("saved_runs/pilots") / f"steps_{args.max_steps}"
