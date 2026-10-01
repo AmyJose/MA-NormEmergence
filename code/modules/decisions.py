@@ -1,29 +1,29 @@
 class RuleBasedDecisionModule:
-    def __init__(self, agent, policy_type="utilitarian"):
+    def __init__(self, agent, policy_type="cooperative"):
         self.agent = agent
         self.policy_type = policy_type
 
     def decide(self, observation:dict) -> str:
-        if self.policy_type == "selfish":
-            return self._selfish(observation)
+        if self.policy_type == "self_interested":
+            return self._self_interested(observation)
 
-        if self.policy_type == "utilitarian":
-            return self._utilitarian(observation)
+        if self.policy_type == "cooperative":
+            return self._cooperative(observation)
 
-        if self.policy_type == "selfless":
-            return self._selfless(observation)
+        if self.policy_type == "altruistic":
+            return self._altruistic(observation)
 
         raise ValueError(f"Unknown policy: {self.policy_type}")
     
-    #selfish policy
-    def _selfish(self, obs):
+    #self-interested policy
+    def _self_interested(self, obs):
         if obs["berries"] > 0:
             return "eat"
         
         return self._move_towards_nearest_berry()
 
-    #utiliarianism policy
-    def _utilitarian(self, obs):
+    #cooperative policy
+    def _cooperative(self, obs):
         #if i have a berry and cant throw it, just eat
         if obs["berries"] > 0 and obs["health"] < self.agent.throw_berry_threshold:
             return "eat"
@@ -40,8 +40,8 @@ class RuleBasedDecisionModule:
         #otherwise, just move
         return self._move_towards_nearest_berry()
     
-    #selfless policy : others matter more
-    def _selfless(self, obs):
+    #altruistic policy : others matter more
+    def _altruistic(self, obs):
         if obs["berries"] > 0 and obs["health"] >= self.agent.throw_berry_threshold:
             worst = self._get_worst_off_other_agent()
 
