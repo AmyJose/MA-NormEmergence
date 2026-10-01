@@ -13,8 +13,8 @@ class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
     def __init__(
             self, rng, llm_client, num_agents=4, num_berries=8, 
-            width=8, height=4, prompt_type="baseline", 
-            rule_policy="utilitarian", 
+            width=8, height=4, prompt_type="unframed", 
+            rule_policy="cooperative", 
             run_dir="data/results/current_run",
             llm_agent_ids=(0,1),
             max_steps = 75,
@@ -57,6 +57,11 @@ class HarvestModel(mesa.Model):
         self.metadata ={
             "rng": rng,
             "num_agents": num_agents,
+
+            "llm_agent_ids": list(self.llm_agent_ids),
+            "num_llm_agents": len(self.llm_agent_ids),
+            "num_rule_agents": self.num_agents - len(self.llm_agent_ids),
+
             "num_berries": num_berries,
             "width": width,
             "height": height,
@@ -68,6 +73,9 @@ class HarvestModel(mesa.Model):
 
             "agents": {},
         }
+
+        if self.llm_agent_ids and llm_client is None:
+            raise ValueError("LLM agents require an llm_client")
         
         self.harvest_agents = []
         for i in range(self.num_agents):

@@ -24,7 +24,7 @@ with tempfile.TemporaryDirectory() as run_dir:
         rng=42,
         llm_client=client,
         llm_agent_ids=(0, 1),
-        rule_policy="selfish",
+        rule_policy="self_interested",
         run_dir=run_dir,
     )
 

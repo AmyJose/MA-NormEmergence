@@ -21,8 +21,8 @@ model = HarvestModel(
     rng=42,
     llm_client=client,
     llm_agent_ids=(0, 1),
-    prompt_type="baseline",
-    rule_policy="selfish",
+    prompt_type="unframed",
+    rule_policy="self_interested",
     run_dir=run_dir,
 )
 
