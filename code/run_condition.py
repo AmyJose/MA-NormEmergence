@@ -22,6 +22,12 @@ def main():
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--max-steps", type=int, default=75)
     parser.add_argument("--output-root", type=Path, default=None)
+    parser.add_argument(
+        "--llm-agent-ids",
+        type=int,
+        nargs="+",
+        default=None,
+    )
     args = parser.parse_args()
 
     if args.rule_only:
@@ -29,6 +35,20 @@ def main():
             parser.error("--rule-only cannot be combined with --model or --prompt")
     elif not args.model or not args.prompt:
         parser.error("Mixed runs require both --model and --prompt")
+    if args.rule_only:
+        if args.llm_agent_ids is not None:
+            parser.error("--rule-only cannot be combined with --llm-agent-ids")
+        llm_agent_ids = ()
+    else:
+        llm_agent_ids = tuple(
+            args.llm_agent_ids
+            if args.llm_agent_ids is not None
+            else (0, 1)
+        )
+        if len(set(llm_agent_ids)) != len(llm_agent_ids):
+            parser.error("LLM agent IDs must be unique")
+        if any(agent_id not in range(4) for agent_id in llm_agent_ids):
+            parser.error("LLM agent IDs must be between 0 and 3")
 
     output_root = args.output_root or (
         Path("saved_runs/exp2")
@@ -65,7 +85,7 @@ def main():
     model = HarvestModel(
         rng=args.seed,
         llm_client=client,
-        llm_agent_ids=() if args.rule_only else (0, 1),
+        llm_agent_ids=llm_agent_ids,
         max_steps=args.max_steps,
         prompt_type=args.prompt,
         rule_policy=args.rule_policy,

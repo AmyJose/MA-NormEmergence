@@ -10,6 +10,12 @@ def main():
     parser.add_argument("--kind", choices=("mixed", "rule_only"), required=True)
     parser.add_argument("--task-id", type=int, required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=Path("saved_runs/exp2"),
+    )
+    parser.add_argument("--llm-agent-ids", type=int, nargs="+", default=None)
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent.parent
@@ -35,12 +41,19 @@ def main():
         "--rule-policy", row["rule_policy"],
         "--seed", row["seed"],
         "--max-steps", "75",
-        "--output-root", str(root / "saved_runs" / "exp2"),
+        "--output-root", str(root / args.output_root),
     ]
 
     if args.kind == "mixed":
         command.extend(["--model", row["model"], "--prompt", row["prompt"]])
+        if args.llm_agent_ids is not None:
+            command.extend([
+                "--llm-agent-ids",
+                *map(str, args.llm_agent_ids),
+            ])
     else:
+        if args.llm_agent_ids is not None:
+            parser.error("--llm-agent-ids only applies to mixed runs")
         command.append("--rule-only")
 
     print(f"Selected condition: {row}", flush=True)
