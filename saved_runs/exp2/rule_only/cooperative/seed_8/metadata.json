@@ -1,0 +1,32 @@
+{
+    "rng": 8,
+    "num_agents": 4,
+    "llm_agent_ids": [],
+    "num_llm_agents": 0,
+    "num_rule_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 75,
+    "prompt_type": null,
+    "rule_policy": "cooperative",
+    "run_dir": "/home/b6do/amyjose.b6do/MA-NormEmergence/saved_runs/exp2/rule_only/cooperative/seed_8",
+    "agents": {
+        "0": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "cooperative"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "cooperative"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "cooperative"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "cooperative"
+        }
+    }
+}

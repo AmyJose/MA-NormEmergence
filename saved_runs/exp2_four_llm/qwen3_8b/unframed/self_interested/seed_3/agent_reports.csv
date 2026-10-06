@@ -1,0 +1,13 @@
+agent_id,episode,step,berries,berries_consumed,berries_foraged,berries_thrown,health,wellbeing,action,requested_action,throw_target,dead,num_behaviours
+0,1,0,1,0,1,0,0.94,21.5,move,west,,False,1
+1,1,0,0,0,0,0,0.94,15.666666666666666,move,west,,False,1
+2,1,0,0,0,0,0,0.94,15.666666666666666,move,west,,False,1
+3,1,0,0,0,0,0,0.94,15.666666666666666,move,north,,False,1
+0,1,1,0,1,1,0,1.23,20.5,eat,eat,,False,2
+1,1,1,1,0,1,0,0.8799999999999999,20.5,move,east,,False,1
+2,1,1,0,0,0,0,0.8799999999999999,14.666666666666666,move,south,,False,1
+3,1,1,0,0,0,0,0.8799999999999999,14.666666666666666,move,south,,False,1
+0,1,2,1,1,2,0,1.17,25.333333333333336,move,west,,False,2
+1,1,2,0,1,1,0,1.17,19.5,eat,eat,,False,2
+2,1,2,1,0,1,0,0.8199999999999998,19.5,move,south,,False,1
+3,1,2,0,0,0,0,0.8199999999999998,13.666666666666664,move,west,,False,1
