@@ -15,6 +15,152 @@ GROUP_COLUMNS = [
     "rule_policy",
 ]
 
+def executed_action_metrics(agents, llm_agent_ids):
+    """
+    Calculate executed action metrics separately for
+    LLM-based and rule-based agents.
+
+    Uses agent_reports.csv so that the same behavioural definition
+    is applied to both agent types.
+
+    A successful share is an executed "throw" action. Failed throw
+    attempts are recorded by the environment as "wait" and therefore
+    count as unsuccessful actions rather than successful shares.
+    """
+
+    results = {}
+
+    llm_agent_ids = set(llm_agent_ids)
+
+    for name, ids in (
+        ("llm", llm_agent_ids),
+        (
+            "rule",
+            set(agents["agent_id"].unique()) - llm_agent_ids,
+        ),
+    ):
+        if not ids:
+            for category in (
+                "move",
+                "eat",
+                "throw",
+                "unsuccessful",
+            ):
+                results[
+                    f"{name}_executed_{category}_proportion"
+                ] = float("nan")
+
+            results[
+                f"{name}_executed_actions"
+            ] = 0
+
+            # No agents of this type means no successful shares.
+            results[
+                f"{name}_successful_shares"
+            ] = 0
+
+            continue
+
+        subgroup = agents.loc[
+            agents["agent_id"].isin(ids)
+        ].copy()
+
+        # Keep snapshots corresponding to actual activations.
+        #
+        # An agent contributes decisions while alive, including
+        # the activation on which it dies.
+        active_rows = []
+
+        for agent_id in ids:
+            snapshots = subgroup.loc[
+                subgroup["agent_id"] == agent_id
+            ].sort_values("step")
+
+            alive = True
+
+            for _, snapshot in snapshots.iterrows():
+                if alive:
+                    active_rows.append(snapshot)
+
+                alive = (
+                    alive
+                    and str(snapshot["dead"]).lower() != "true"
+                )
+
+        if not active_rows:
+            results[
+                f"{name}_executed_actions"
+            ] = 0
+
+            results[
+                f"{name}_successful_shares"
+            ] = 0
+
+            for category in (
+                "move",
+                "eat",
+                "throw",
+                "unsuccessful",
+            ):
+                results[
+                    f"{name}_executed_{category}_proportion"
+                ] = float("nan")
+
+            continue
+
+        active = pd.DataFrame(active_rows)
+
+        action_map = {
+            "move": "move",
+            "eat": "eat",
+            "throw": "throw",
+            "wait": "unsuccessful",
+        }
+
+        categories = (
+            active["action"]
+            .astype(str)
+            .map(action_map)
+        )
+
+        if categories.isna().any():
+            unknown = active.loc[
+                categories.isna(),
+                "action",
+            ].unique()
+
+            raise ValueError(
+                f"Unknown executed actions: {unknown}"
+            )
+
+        total = len(categories)
+
+        results[
+            f"{name}_executed_actions"
+        ] = total
+
+        for category in (
+            "move",
+            "eat",
+            "throw",
+            "unsuccessful",
+        ):
+            count = int(
+                (categories == category).sum()
+            )
+
+            results[
+                f"{name}_executed_{category}_proportion"
+            ] = count / total
+
+            # Preserve the numerator used to calculate the
+            # successful-sharing proportion.
+            if category == "throw":
+                results[
+                    f"{name}_successful_shares"
+                ] = count
+
+    return results
 
 def read_run(run):
     metadata = json.loads((run / "metadata.json").read_text())
@@ -58,6 +204,13 @@ def read_run(run):
         raise ValueError("Multiple models need separate grouping")
 
     metrics = final_metrics(agents, ids)
+
+    metrics.update(
+        executed_action_metrics(
+            agents,
+            ids,
+        )
+    )
 
     action_counts = {
         "move": 0,

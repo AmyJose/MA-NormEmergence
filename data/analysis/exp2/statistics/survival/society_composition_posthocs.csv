@@ -1,0 +1,13 @@
+n,mean_a,mean_b,mean_difference,cohen_dz,permutation_p_raw,prompt,rule_policy,permutation_p_holm,significant_holm
+10,0.975,1.0,-0.025,-0.31622776601683794,1.0,unframed,self_interested,1.0,False
+10,0.975,1.0,-0.025,-0.31622776601683794,1.0,self_interested,self_interested,1.0,False
+10,1.0,0.85,0.15,0.7115124735378854,0.125,cooperative,self_interested,1.0,False
+10,0.825,0.825,0.0,0.0,1.0,altruistic,self_interested,1.0,False
+10,0.675,0.85,-0.175,-0.5233670255931882,0.203125,unframed,cooperative,1.0,False
+10,0.775,0.825,-0.05,-0.14301938838683884,0.8203125,self_interested,cooperative,1.0,False
+10,1.0,0.975,0.025,0.31622776601683794,1.0,cooperative,cooperative,1.0,False
+10,0.9,0.875,0.025,0.07771916402262596,1.0,altruistic,cooperative,1.0,False
+10,0.85,0.75,0.1,0.4743416490252569,0.3125,unframed,altruistic,1.0,False
+10,0.65,0.8,-0.15,-0.3643993485805122,0.359375,self_interested,altruistic,1.0,False
+10,0.8,0.95,-0.15,-0.5581563056514379,0.1875,cooperative,altruistic,1.0,False
+10,0.925,0.975,-0.05,-0.4743416490252569,0.5,altruistic,altruistic,1.0,False
