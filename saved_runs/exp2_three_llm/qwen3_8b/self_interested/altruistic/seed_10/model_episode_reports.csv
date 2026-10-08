@@ -1,0 +1,2 @@
+episode,end_step,max_berries,mean_berries,max_berries_consumed,mean_berries_consumed,gini_berries_consumed,mean_berries_thrown,max_health,mean_health,median_health,variance_health,deceased,num_emerged_norms
+1,74,0,0.0,26,20.75,0.1656626506024097,3.5,5.600000000000011,3.937500000000008,5.075000000000011,6.972291666666695,1,5
