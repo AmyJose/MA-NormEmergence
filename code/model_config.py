@@ -7,6 +7,11 @@ MODEL_CONFIGS = {
         "local_dir": "qwen3-8b",
         "max_new_tokens": 3000,
     },
+    "llama3_8b": {
+        "backend": "ollama",
+        "ollama_model": "llama3.1:8b",
+        "max_new_tokens": 3000,
+    },
 }
 
 
