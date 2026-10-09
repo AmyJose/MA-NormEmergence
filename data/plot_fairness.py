@@ -1,291 +1,172 @@
-import argparse
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
 
+ROOT = Path("data/analysis/exp2_time_averaged")
+OUTPUT = ROOT / "figures"
+OUTPUT.mkdir(parents=True, exist_ok=True)
 
-FRAMINGS = (
-    "unframed",
-    "self_interested",
-    "cooperative",
-    "altruistic",
-)
+runs = pd.read_csv(ROOT / "run_metrics.csv")
+mixed = runs.loc[
+    runs["num_llm_agents"].isin([1, 2, 3])
+    & (runs["num_rule_agents"] > 0)
+].copy()
 
-FRAMING_LABELS = (
-    "Unframed",
-    "Self-\ninterested",
-    "Cooperative",
-    "Altruistic",
-)
-
-RULE_POLICIES = (
+POLICIES = [
     ("self_interested", "Self-interested rules"),
     ("cooperative", "Cooperative rules"),
     ("altruistic", "Altruistic rules"),
-)
+]
 
-POPULATIONS = (
-    (1, "1 LLM + 3 rule", "#0072B2", "o", -0.10),
-    (2, "2 LLM + 2 rule", "#D55E00", "s", 0.10),
-)
+FRAMINGS = [
+    ("unframed", "Unframed", "#0072B2", "o"),
+    ("self_interested", "Self-interested", "#D55E00", "s"),
+    ("cooperative", "Cooperative", "#009E73", "^"),
+    ("altruistic", "Altruistic", "#CC79A7", "D"),
+]
 
-METRICS = (
+METRICS = [
     (
-        "gini_final_wellbeing",
-        "Gini of final wellbeing\n(lower is more equal)",
+        "time_averaged_gini_wellbeing",
+        "Time-averaged Gini\n(lower is more equal)",
     ),
     (
-        "minimum_final_wellbeing",
-        "Minimum final wellbeing\n(higher is better)",
+        "time_averaged_minimum_wellbeing",
+        "Time-averaged minimum wellbeing\n(higher is better for the worst-off agent)",
     ),
+]
+
+plt.rcParams.update({
+    "font.size": 10,
+    "axes.titlesize": 11,
+    "axes.labelsize": 10,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
+fig, axes = plt.subplots(
+    2, 3,
+    figsize=(11, 6),
+    sharex=True,
+    sharey="row",
 )
 
+summary_rows = []
+upper_limits = [0.0, 0.0]
 
-def condition_values(runs, policy, population, metric, framing=None):
-    mask = (
-        (runs["rule_policy"] == policy)
-        & (runs["num_llm_agents"] == population)
-    )
+# Small offsets keep the four sets of error bars distinguishable.
+offsets = [-0.09, -0.03, 0.03, 0.09]
 
-    if framing is not None:
-        mask &= runs["prompt"] == framing
-
-    condition = runs.loc[mask]
-
-    description = f"{policy}, {population} LLM, {framing or 'rule-only'}"
-
-    if len(condition) != 10:
-        raise ValueError(
-            f"Expected 10 runs for {description}; found {len(condition)}"
-        )
-
-    if condition["seed"].duplicated().any():
-        raise ValueError(f"Duplicate seeds for {description}")
-
-    values = pd.to_numeric(condition[metric], errors="raise")
-
-    if not np.isfinite(values.to_numpy()).all():
-        raise ValueError(f"Invalid {metric} values for {description}")
-
-    if (values < 0).any():
-        raise ValueError(f"Negative {metric} values for {description}")
-
-    if metric == "gini_final_wellbeing" and (values > 1).any():
-        raise ValueError(f"Gini above 1 for {description}")
-
-    return values
-
-
-def plot_fairness(runs, output_dir):
-    fig, axes = plt.subplots(
-        2, 3,
-        figsize=(11, 6),
-        sharex=True,
-        sharey="row",
-    )
-
-    x = np.arange(len(FRAMINGS))
-    summary_rows = []
-    minimum_upper = 0.0
+for column, (policy, title) in enumerate(POLICIES):
+    axes[0, column].set_title(title)
 
     for row, (metric, ylabel) in enumerate(METRICS):
-        for column, (policy, title) in enumerate(RULE_POLICIES):
-            ax = axes[row, column]
+        ax = axes[row, column]
 
-            baseline = condition_values(runs, policy, 0, metric)
-            baseline_mean = baseline.mean()
+        for (framing, label, colour, marker), offset in zip(
+            FRAMINGS, offsets
+        ):
+            means = []
+            sds = []
 
-            ax.axhline(
-                baseline_mean,
-                color="#555555",
-                linestyle="--",
-                linewidth=1.2,
-                zorder=1,
-            )
+            for population in [1, 2, 3]:
+                condition = mixed.loc[
+                    (mixed["rule_policy"] == policy)
+                    & (mixed["prompt"] == framing)
+                    & (mixed["num_llm_agents"] == population)
+                ]
 
-            # Keep the label clear of the framing points.
-            ax.annotate(
-                "Rule-only mean",
-                xy=(0.98, baseline_mean),
-                xycoords=ax.get_yaxis_transform(),
-                xytext=(0, 4),
-                textcoords="offset points",
-                ha="right",
-                va="bottom",
-                fontsize=8,
-                color="#555555",
-                bbox={
-                    "facecolor": "white",
-                    "edgecolor": "none",
-                    "alpha": 0.85,
-                    "pad": 1,
-                },
-            )
-
-            summary_rows.append({
-                "metric": metric,
-                "rule_policy": policy,
-                "prompt": "not_applicable",
-                "num_llm_agents": 0,
-                "n": len(baseline),
-                "mean": baseline_mean,
-                "sample_sd": baseline.std(ddof=1),
-            })
-
-            if metric == "minimum_final_wellbeing":
-                minimum_upper = max(minimum_upper, baseline_mean)
-
-            for population, label, colour, marker, offset in POPULATIONS:
-                means = []
-                standard_deviations = []
-
-                for framing in FRAMINGS:
-                    values = condition_values(
-                        runs, policy, population, metric, framing
+                if (
+                    len(condition) != 10
+                    or set(condition["seed"]) != set(range(1, 11))
+                ):
+                    raise ValueError(
+                        f"Expected seeds 1–10: "
+                        f"{policy}, {framing}, {population} LLMs"
                     )
-                    mean = values.mean()
-                    sd = values.std(ddof=1)
 
-                    means.append(mean)
-                    standard_deviations.append(sd)
+                values = condition[metric].to_numpy(dtype=float)
 
-                    summary_rows.append({
-                        "metric": metric,
-                        "rule_policy": policy,
-                        "prompt": framing,
-                        "num_llm_agents": population,
-                        "n": len(values),
-                        "mean": mean,
-                        "sample_sd": sd,
-                    })
+                if not np.isfinite(values).all() or (values < 0).any():
+                    raise ValueError(f"Invalid values for {metric}")
 
-                    if metric == "minimum_final_wellbeing":
-                        minimum_upper = max(minimum_upper, mean + sd)
+                if "gini" in metric and (values > 1).any():
+                    raise ValueError("Gini must be between zero and one")
 
-                ax.errorbar(
-                    x + offset,
-                    means,
-                    yerr=standard_deviations,
-                    fmt=marker,
-                    linestyle="none",
-                    color=colour,
-                    markersize=5,
-                    capsize=3,
-                    elinewidth=1.2,
-                    zorder=3,
-                )
+                mean = values.mean()
+                sd = values.std(ddof=1)
 
-            if row == 0:
-                ax.set_title(title, fontsize=11)
+                means.append(mean)
+                sds.append(sd)
 
-            ax.set_xticks(x)
-            ax.set_xticklabels(FRAMING_LABELS, fontsize=9)
-            ax.set_xlim(-0.5, len(FRAMINGS) - 0.5)
-            ax.grid(axis="y", alpha=0.2)
-            ax.set_axisbelow(True)
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
+                summary_rows.append({
+                    "rule_policy": policy,
+                    "prompt": framing,
+                    "num_llm_agents": population,
+                    "metric": metric,
+                    "count": len(values),
+                    "mean": mean,
+                    "std": sd,
+                })
 
-        axes[row, 0].set_ylabel(ylabel, fontsize=9)
+            upper_limits[row] = max(
+                upper_limits[row],
+                np.max(np.array(means) + np.array(sds)),
+            )
 
-    # Shared limits within each row, including the full SD intervals.
-    gini_rows = [
-        row for row in summary_rows
-        if row["metric"] == "gini_final_wellbeing"
-    ]
-    gini_lower = min(
-        0.0,
-        min(row["mean"] - row["sample_sd"] for row in gini_rows),
-    )
-    gini_upper = max(
-        1.0,
-        max(row["mean"] + row["sample_sd"] for row in gini_rows),
-    )
-    axes[0, 0].set_ylim(gini_lower - 0.02, gini_upper + 0.02)
-    axes[0, 0].set_yticks(np.linspace(0, 1, 6))
+            ax.errorbar(
+                np.array([1, 2, 3]) + offset,
+                means,
+                yerr=sds,
+                label=label,
+                color=colour,
+                marker=marker,
+                markersize=5,
+                linewidth=1.5,
+                elinewidth=0.9,
+                capsize=3,
+            )
 
-    minimum_rows = [
-        row for row in summary_rows
-        if row["metric"] == "minimum_final_wellbeing"
-    ]
-    minimum_lower = min(
-        0.0,
-        min(row["mean"] - row["sample_sd"] for row in minimum_rows),
-    )
-    padding = 0.05 * max(minimum_upper - minimum_lower, 1.0)
-    axes[1, 0].set_ylim(
-        minimum_lower - padding,
-        minimum_upper + padding,
-    )
+        ax.set_xticks([1, 2, 3])
+        ax.set_xlim(0.75, 3.25)
+        ax.grid(axis="y", alpha=0.2)
+        ax.set_axisbelow(True)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
 
-    legend_handles = [
-        Line2D(
-            [], [],
-            color=colour,
-            marker=marker,
-            linestyle="none",
-            markersize=6,
-            label=label,
-        )
-        for _, label, colour, marker, _ in POPULATIONS
-    ]
-    legend_handles.append(
-        Line2D(
-            [], [],
-            color="#555555",
-            linestyle="--",
-            linewidth=1.2,
-            label="Rule-only mean",
-        )
-    )
+        if column == 0:
+            ax.set_ylabel(ylabel)
 
-    fig.legend(
-        handles=legend_handles,
-        loc="lower center",
-        ncol=3,
-        frameon=False,
-        fontsize=10,
-    )
-    fig.tight_layout(rect=(0, 0.08, 1, 1), h_pad=1.5, w_pad=1.2)
+        if row == 1:
+            ax.set_xlabel("Number of LLM agents")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+# Common scales within each row, including the SD error bars.
+axes[0, 0].set_ylim(0, min(1.0, upper_limits[0] * 1.12))
+axes[1, 0].set_ylim(0, upper_limits[1] * 1.12)
 
-    for extension in ("png", "pdf"):
-        fig.savefig(
-            output_dir / f"fairness_comparison.{extension}",
-            dpi=300,
-            bbox_inches="tight",
-        )
+handles, labels = axes[0, 0].get_legend_handles_labels()
+fig.legend(
+    handles,
+    labels,
+    loc="lower center",
+    ncol=4,
+    frameon=False,
+    bbox_to_anchor=(0.5, 0.01),
+)
 
-    plt.close(fig)
+fig.tight_layout(rect=(0, 0.09, 1, 1))
 
-    pd.DataFrame(summary_rows).to_csv(
-        output_dir / "fairness_summary.csv",
-        index=False,
-    )
-    print(f"Fairness figures and summary saved to: {output_dir}")
+for extension in ["pdf", "png"]:
+    path = OUTPUT / f"fairness_mixed_populations.{extension}"
+    fig.savefig(path, dpi=300, bbox_inches="tight")
+    print(f"Saved: {path}")
 
+pd.DataFrame(summary_rows).to_csv(
+    OUTPUT / "fairness_plot_summary.csv",
+    index=False,
+)
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--input",
-        type=Path,
-        default=Path("data/analysis/exp2/run_metrics.csv"),
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("data/analysis/exp2/figures"),
-    )
-    args = parser.parse_args()
-
-    runs = pd.read_csv(args.input)
-    plot_fairness(runs, args.output_dir)
-
-
-if __name__ == "__main__":
-    main()
+plt.close(fig)
+print("Fairness figure checks passed")

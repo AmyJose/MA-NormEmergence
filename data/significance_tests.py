@@ -74,14 +74,28 @@ from statsmodels.stats.multitest import multipletests
 # Configuration
 # =====================================================================
 
-RESULTS_DIR = Path("data/analysis/exp2")
-INPUT_FILE = RESULTS_DIR / "run_metrics.csv"
+import argparse
 
-# Start with societal welfare.
-#
-# Later this can be changed or extended to analyse other
-# episode-level metrics.
-METRIC = "total_final_wellbeing"
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--metric",
+    choices=(
+        "total_final_wellbeing",
+        "time_averaged_minimum_wellbeing",
+        "time_averaged_gini_wellbeing",
+        "llm_action_throw_proportion",
+    ),
+    default="total_final_wellbeing",
+)
+args = parser.parse_args()
+
+RESULTS_DIR = Path("data/analysis/exp2_time_averaged")
+INPUT_FILE = RESULTS_DIR / "run_metrics.csv"
+METRIC = args.metric
+
+# Separate outputs for each metric.
+RESULTS_DIR = RESULTS_DIR / "significance" / METRIC
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 ALPHA = 0.05
 
@@ -652,9 +666,7 @@ def analyse_anova_assumptions(
         linewidth=1,
     )
 
-    plt.xlabel(
-        "Fitted total final wellbeing"
-    )
+    plt.xlabel(f"Fitted {METRIC}")
 
     plt.ylabel(
         "Residual"
@@ -1326,50 +1338,30 @@ composition_results = []
 #     welfare is higher in 1:3
 
 
+composition_pairs = list(combinations((1, 2, 3), 2))
+
 for prompt in PROMPT_LEVELS:
-
-    for rule_policy in sorted(
-        mixed[
-            "rule_policy"
-        ].dropna().unique()
-    ):
-
+    for rule_policy in sorted(mixed["rule_policy"].dropna().unique()):
         context = mixed.loc[
-            (
-                mixed["prompt"]
-                == prompt
-            )
-            &
-            (
-                mixed["rule_policy"]
-                == rule_policy
-            )
+            (mixed["prompt"] == prompt)
+            & (mixed["rule_policy"] == rule_policy)
         ].copy()
 
-        result = paired_comparison(
-            data=context,
-            group_col="num_llm_agents",
-            group_a=1,
-            group_b=2,
-            metric=METRIC,
-        )
+        for composition_a, composition_b in composition_pairs:
+            result = paired_comparison(
+                data=context,
+                group_col="num_llm_agents",
+                group_a=composition_a,
+                group_b=composition_b,
+                metric=METRIC,
+            )
 
-        result[
-            "prompt"
-        ] = prompt
+            result["prompt"] = prompt
+            result["rule_policy"] = rule_policy
+            composition_results.append(result)
 
-        result[
-            "rule_policy"
-        ] = rule_policy
-
-        composition_results.append(
-            result
-        )
-
-
-# 4 prompts x 3 rule policies = 12 comparisons.
-#
-# Treat all twelve composition comparisons as one family.
+# 4 framings × 3 rule policies × 3 composition pairs = 36 tests.
+# Apply Holm correction across this family for the current metric.
 
 composition_results = (
     add_holm_correction(
@@ -1501,14 +1493,8 @@ Mean differences are calculated as:
 
     group_a - group_b
 
-For population-composition comparisons:
-
-    group_a = 1:3
-    group_b = 2:2
-
-so:
-
-    negative difference -> higher welfare in 2:2
-    positive difference -> higher welfare in 1:3
+For population-composition comparisons, group_a and group_b
+give the number of LLM agents. Differences are group_a minus
+group_b. Comparisons cover 1 vs 2, 1 vs 3, and 2 vs 3.
 """
 )

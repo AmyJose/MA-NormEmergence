@@ -10,8 +10,8 @@ from matplotlib.colors import TwoSlopeNorm
 # Configuration
 # ============================================================
 
-INPUT = Path("data/analysis/exp2/run_metrics.csv")
-OUTPUT_DIR = Path("data/analysis/exp2/plots")
+INPUT = Path("data/analysis/exp2_time_averaged/run_metrics.csv")
+OUTPUT_DIR = Path("data/analysis/exp2_time_averaged/figures")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 PROMPT_ORDER = [
@@ -40,9 +40,12 @@ RULE_LABELS = {
     "altruistic": "Altruistic",
 }
 
+COMPOSITIONS = [1, 2, 3]
+
 COMPOSITION_LABELS = {
-    1: "1:3 LLM-to-rule",
-    2: "2:2 LLM-to-rule",
+    1: "(1:3)",
+    2: "(2:2)",
+    3: "(3:1)",
 }
 
 
@@ -53,7 +56,7 @@ COMPOSITION_LABELS = {
 runs = pd.read_csv(INPUT)
 
 mixed = runs.loc[
-    runs["num_llm_agents"].isin([1, 2])
+    runs["num_llm_agents"].isin(COMPOSITIONS)
 ].copy()
 
 required_columns = {
@@ -72,17 +75,28 @@ if missing:
         + ", ".join(sorted(missing))
     )
 
-condition_counts = (
-    mixed
-    .groupby(
-        ["num_llm_agents", "prompt", "rule_policy"]
-    )["seed"]
-    .nunique()
+keys = ["num_llm_agents", "prompt", "rule_policy"]
+
+if mixed.duplicated(keys + ["seed"]).any():
+    raise ValueError("Duplicate condition–seed rows found")
+
+if not np.isfinite(mixed["llm_rule_wellbeing_gap"]).all():
+    raise ValueError("Wellbeing gaps must be finite")
+
+expected_conditions = pd.MultiIndex.from_product(
+    [COMPOSITIONS, PROMPT_ORDER, RULE_ORDER],
+    names=keys,
 )
 
-if not (condition_counts == 10).all():
+condition_counts = (
+    mixed.groupby(keys)["seed"]
+    .nunique()
+    .reindex(expected_conditions, fill_value=0)
+)
+
+if not condition_counts.eq(10).all():
     raise ValueError(
-        "Expected 10 seeds per mixed condition.\n"
+        "Expected 10 seeds for each of the 36 mixed conditions.\n"
         + condition_counts.to_string()
     )
 
@@ -92,14 +106,17 @@ if not (condition_counts == 10).all():
 # ============================================================
 
 summary = (
-    mixed
-    .groupby(
-        ["num_llm_agents", "prompt", "rule_policy"],
-        as_index=False,
-    )
+    mixed.groupby(keys, as_index=False)
     .agg(
-        mean_gap=("llm_rule_wellbeing_gap", "mean")
+        mean_gap=("llm_rule_wellbeing_gap", "mean"),
+        std_gap=("llm_rule_wellbeing_gap", "std"),
+        count=("llm_rule_wellbeing_gap", "count"),
     )
+)
+
+summary.to_csv(
+    OUTPUT_DIR / "llm_rule_wellbeing_heatmap_summary.csv",
+    index=False,
 )
 
 
@@ -109,7 +126,7 @@ summary = (
 
 matrices = {}
 
-for num_llm_agents in [1, 2]:
+for num_llm_agents in COMPOSITIONS:
 
     matrix = np.empty(
         (len(PROMPT_ORDER), len(RULE_ORDER))
@@ -155,7 +172,10 @@ observed_max = max(
     for matrix in matrices.values()
 )
 
-COLOUR_LIMIT = np.ceil(observed_max / 10) * 10
+COLOUR_LIMIT = max(
+    10.0,
+    float(np.ceil(observed_max / 10) * 10),
+)
 
 norm = TwoSlopeNorm(
     vmin=-COLOUR_LIMIT,
@@ -170,12 +190,12 @@ norm = TwoSlopeNorm(
 
 fig, axes = plt.subplots(
     1,
-    2,
-    figsize=(8, 4.5),
+    3,
+    figsize=(11, 4.5),
     sharey=True,
 )
 
-for ax, num_llm_agents in zip(axes, [1, 2]):
+for ax, num_llm_agents in zip(axes, COMPOSITIONS):
 
     matrix = matrices[num_llm_agents]
 
@@ -280,12 +300,10 @@ cbar = fig.colorbar(
     orientation="horizontal",
 )
 
-cbar.set_ticks(
-    [-80, -40, 0, 40, 80]
-)
+cbar.set_ticks(np.linspace(-COLOUR_LIMIT, COLOUR_LIMIT, 5))
 
 cbar.set_label(
-    "Mean final wellbeing difference (LLM − rule)",
+    "Mean final wellbeing difference per agent (LLM − rule)",
     fontsize=9,
     labelpad=5,
 )
