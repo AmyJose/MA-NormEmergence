@@ -8,8 +8,8 @@ MODEL_CONFIGS = {
         "max_new_tokens": 3000,
     },
     "llama3_8b": {
-        "backend": "ollama",
-        "ollama_model": "llama3.1:8b",
+        "hf_id": "meta-llama/Llama-3.1-8B-Instruct",
+        "local_dir": "llama3-8b-instruct",
         "max_new_tokens": 3000,
     },
 }
