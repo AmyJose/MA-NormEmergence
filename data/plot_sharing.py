@@ -28,29 +28,33 @@ RULE_POLICIES = (
 )
 
 POPULATIONS = (
-    (1, "1 LLM + 3 rule", "#0072B2", "o", -0.18),
-    (2, "2 LLM + 2 rule", "#D55E00", "s", 0.18),
+    (1, "(1:3)", "#0072B2", "o", -0.24),
+    (2, "(2:2)", "#D55E00", "s", 0.00),
+    (3, "(3:1)", "#009E73", "^", 0.24),
 )
 
 METRIC = "llm_action_throw_proportion"
 
 
 def plot_sharing(runs, output_dir):
-    selected = runs.loc[runs["num_llm_agents"].isin((1, 2))].copy()
+    selected = runs.loc[
+        runs["num_llm_agents"].isin((1, 2, 3))
+    ].copy()
 
     if selected.empty:
-        raise ValueError("No one- or two-LLM runs found")
+        raise ValueError("No LLM runs found")
 
     fig, axes = plt.subplots(
-        1, 3,
-        figsize=(11, 3.5),
+        3, 1,
+        figsize=(3.5, 6.2),
         sharey=True,
+        sharex=True,
     )
     x = np.arange(len(FRAMINGS))
 
     summary_rows = []
 
-    for ax, (policy, title) in zip(axes, RULE_POLICIES):
+    for ax, (policy, title) in zip(axes[:3], RULE_POLICIES):
         for population, label, colour, marker, offset in POPULATIONS:
             means = []
             standard_deviations = []
@@ -104,10 +108,10 @@ def plot_sharing(runs, output_dir):
                     "sd_percentage_points": 100 * sd,
                 })
 
-            ax.bar(
+            bars = ax.bar(
                 x + offset,
                 means,
-                width=0.34,
+                width=0.22,
                 yerr=standard_deviations,
                 color=colour,
                 label=label,
@@ -119,13 +123,28 @@ def plot_sharing(runs, output_dir):
                     "capthick": 1,
                 },
             )
+            for bar, mean, sd in zip(bars, means, standard_deviations):
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    mean + sd + 0.015,
+                    f"{100 * mean:.1f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=6,
+                    rotation=90,
+                    color="#333333",
+                )
 
-        ax.set_title(title)
+        ax.set_title(title, fontsize=9, pad=6)
         ax.set_xticks(x)
         ax.set_xticklabels(
-            ("Unframed", "Self-\ninterested", "Cooperative", "Altruistic"),
-            fontsize=9,
+            ("Unframed", "Self-interested", "Cooperative", "Altruistic"),
+            fontsize=8,
+            rotation=30,
+            ha="right",
+            rotation_mode="anchor",
         )
+        ax.tick_params(axis="y", labelsize=8)
         ax.set_xlim(-0.5, len(FRAMINGS) - 0.5)
         ax.set_ylim(0, 1)
         ax.set_yticks(np.linspace(0, 1, 6))
@@ -135,23 +154,33 @@ def plot_sharing(runs, output_dir):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
-    axes[0].set_ylabel(
-        "Successful sharing\n(% of LLM activations)",
-        fontsize=10,
+    fig.supylabel(
+        "Successful sharing (% of LLM activations)",
+        fontsize=9,
+        x=0.02,
     )
 
     handles, labels = axes[0].get_legend_handles_labels()
+
     fig.legend(
         handles,
         labels,
+        title="Population composition (LLM:rule)",
         loc="lower center",
-        bbox_to_anchor=(0.5, 0),
-        ncol=2,
+        bbox_to_anchor=(0.5, 0.01),
+        ncol=3,
         frameon=False,
-        fontsize=10,
+        fontsize=8,
+        title_fontsize=8,
     )
 
-    fig.tight_layout(rect=(0, 0.15, 1, 1), w_pad=1.2)
+    fig.subplots_adjust(
+        left=0.22,
+        right=0.98,
+        top=0.95,
+        bottom=0.22,
+        hspace=0.35,
+    )
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -176,12 +205,12 @@ def main():
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("data/analysis/exp2/run_metrics.csv"),
+        default=Path("data/analysis/exp2_time_averaged/run_metrics.csv"),
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("data/analysis/exp2/figures"),
+        default=Path("data/analysis/exp2_time_averaged/figures"),
     )
     args = parser.parse_args()
 

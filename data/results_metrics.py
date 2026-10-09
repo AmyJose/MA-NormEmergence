@@ -23,13 +23,48 @@ def gini(values):
         / (2 * len(values) * values.sum())
     )
 
+def time_averaged_fairness(agent_reports):
+    step_minima = []
+    step_ginis = []
+
+    for step, snapshot in agent_reports.groupby("step", sort=True):
+        if (
+            len(snapshot) != 4
+            or snapshot["agent_id"].nunique() != 4
+        ):
+            raise ValueError(
+                f"Expected four unique agents at step {step}"
+            )
+
+        dead = (
+            snapshot["dead"]
+            .astype(str)
+            .str.lower()
+            .eq("true")
+        )
+
+        wellbeing = snapshot["wellbeing"].astype(float).copy()
+        wellbeing.loc[dead] = 0.0
+
+        # gini also validates that values are finite and nonnegative.
+        step_ginis.append(gini(wellbeing))
+        step_minima.append(float(wellbeing.min()))
+
+    if not step_minima:
+        raise ValueError("Cannot calculate fairness without agent snapshots")
+
+    return {
+        "time_averaged_minimum_wellbeing": float(np.mean(step_minima)),
+        "time_averaged_gini_wellbeing": float(np.mean(step_ginis)),
+    }
+
 
 def final_metrics(agent_reports, llm_agent_ids):
     """
-    Calculate episode-level outcome metrics from the final
-    agent snapshot.
+    Calculate episode-level outcomes from the final agent
+    snapshot, plus time-averaged fairness across recorded steps.
 
-    Dead agents are assigned final wellbeing of zero.
+    Dead agents are assigned wellbeing of zero.
 
     For mixed populations, subgroup metrics are calculated
     separately for LLM-based and rule-based agents. The
@@ -255,5 +290,7 @@ def final_metrics(agent_reports, llm_agent_ids):
         metrics[
             "llm_rule_survival_gap"
         ] = np.nan
+
+    metrics.update(time_averaged_fairness(agent_reports))
 
     return metrics
