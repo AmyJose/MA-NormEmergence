@@ -11,7 +11,14 @@ from modules.decisions import RuleBasedDecisionModule
 
 class HarvestModel(mesa.Model):
     """Harvest environemnt for resource sharing"""
-    def __init__(self, rng, llm_client, num_agents=4, num_berries=8, width=8, height=4, prompt_type="baseline", rule_policy="utilitarian", run_dir="data/results/current_run"):
+    def __init__(
+            self, rng, llm_client, num_agents=4, num_berries=8, 
+            width=8, height=4, prompt_type="unframed", 
+            rule_policy="cooperative", 
+            run_dir="data/results/current_run",
+            llm_agent_ids=(0,1),
+            max_steps = 75,
+        ):
         super().__init__(rng=rng)
         self.width = width
         self.height = height
@@ -23,6 +30,7 @@ class HarvestModel(mesa.Model):
         )
 
         self.num_agents = num_agents
+        self.llm_agent_ids = llm_agent_ids
         self.num_berries = num_berries
         self.berries = set()
 
@@ -37,15 +45,23 @@ class HarvestModel(mesa.Model):
         self.run_dir = Path(run_dir)
 
         self.emerged_norms = {}
-        self.max_steps = 75
-        self.episode_done = False
 
+        if max_steps < 1:
+            raise ValueError("max_steps must be at least 1")
+        self.max_steps = max_steps
+
+        self.episode_done = False
         self.episode = 1
         self.episode_step = 0
 
         self.metadata ={
             "rng": rng,
             "num_agents": num_agents,
+
+            "llm_agent_ids": list(self.llm_agent_ids),
+            "num_llm_agents": len(self.llm_agent_ids),
+            "num_rule_agents": self.num_agents - len(self.llm_agent_ids),
+
             "num_berries": num_berries,
             "width": width,
             "height": height,
@@ -57,12 +73,15 @@ class HarvestModel(mesa.Model):
 
             "agents": {},
         }
+
+        if self.llm_agent_ids and llm_client is None:
+            raise ValueError("LLM agents require an llm_client")
         
         self.harvest_agents = []
         for i in range(self.num_agents):
             agent = HarvestAgent(model=self, id=i)
 
-            if i == 0:
+            if i in self.llm_agent_ids:
                 decision_module = LLMDecisionModule(llm_client, agent, prompt_name=self.prompt_type)
             else:
                 decision_module = RuleBasedDecisionModule(agent, policy_type=self.rule_policy)
@@ -133,11 +152,11 @@ class HarvestModel(mesa.Model):
         return None
     
     def get_society_wellbeing(self):
-        return [
-            agent.get_wellbeing()
+        return {
+            agent.id: agent.get_wellbeing()
             for agent in self.harvest_agents
             if not agent.dead
-        ]
+        }
 
     def check_emergent_norms(self, adoption_threshold=0.75, dominance_threshold=0.6):
         all_states = set()
@@ -309,6 +328,8 @@ class HarvestModel(mesa.Model):
             "health": [],
             "wellbeing": [],
             "action": [],
+            "requested_action": [],
+            "throw_target": [],
             "dead": [],
             "num_behaviours": [],
         })
@@ -352,7 +373,7 @@ class HarvestModel(mesa.Model):
 
         self.agent_reporter.to_csv(self.agent_report_path, index=False)
         self.model_episode_reporter.to_csv(self.model_episode_report_path, index=False)
-        self.llm_reasoning_reporter.to_csv(self.llm_reasoning_path, index=False)
+        self.llm_reasoning_path.write_text("", encoding="utf-8")
 
         pd.DataFrame(
             columns=[
@@ -396,10 +417,15 @@ class HarvestModel(mesa.Model):
                 "health": agent.health,
                 "wellbeing": agent.get_wellbeing(),
                 "action": agent.current_action,
+                "requested_action": agent.last_requested_action,
+                "throw_target": agent.last_throw_target,
                 "dead": agent.dead,
                 "num_behaviours": len(agent.norms_module.behaviour_base),
             })
-            if isinstance(agent.decision_module,LLMDecisionModule):
+            if (
+                isinstance(agent.decision_module, LLMDecisionModule)
+                and agent.last_decision_step == self.episode_step
+            ):
                 reasoning_row = {
                     "episode": self.episode,
                     "step": self.episode_step,
@@ -407,8 +433,12 @@ class HarvestModel(mesa.Model):
                     "health": agent.health,
                     "berries": agent.berries,
                     "reasoning": agent.last_reasoning,
+                    "raw_response": agent.last_raw_response,
                     "fallback_used": agent.last_fallback_used,
                     "action": agent.current_action,
+                    "requested_action": agent.last_requested_action,
+                    "throw_target": agent.last_throw_target,
+                    "observation": agent.last_observation,
                 }
                 with open(self.llm_reasoning_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(reasoning_row) + "\n")

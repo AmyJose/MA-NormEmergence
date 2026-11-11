@@ -1,0 +1,12 @@
+episode,agent_id,behaviour,count,decision_module
+1,0,"IF,no berries,high health,medium society wellbeing,THEN,move",59,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,throw",2,LLMDecisionModule
+1,0,"IF,low berries,medium health,medium society wellbeing,THEN,eat",3,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,eat",10,LLMDecisionModule
+1,0,"IF,low berries,high health,medium society wellbeing,THEN,move",1,LLMDecisionModule
+1,1,"IF,no berries,high health,medium society wellbeing,THEN,move",60,RuleBasedDecisionModule
+1,1,"IF,low berries,high health,medium society wellbeing,THEN,eat",15,RuleBasedDecisionModule
+1,2,"IF,no berries,high health,medium society wellbeing,THEN,move",57,RuleBasedDecisionModule
+1,2,"IF,low berries,high health,medium society wellbeing,THEN,eat",18,RuleBasedDecisionModule
+1,3,"IF,no berries,high health,medium society wellbeing,THEN,move",59,RuleBasedDecisionModule
+1,3,"IF,low berries,high health,medium society wellbeing,THEN,eat",16,RuleBasedDecisionModule

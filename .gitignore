@@ -236,3 +236,4 @@ __pycache__/
 Thumbs.db
 
 data/results/current_run/
+*.out

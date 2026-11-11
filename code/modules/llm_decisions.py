@@ -27,7 +27,18 @@ class LLMDecisionModule:
         path = Path("code/prompts") / f"{name}.txt"
 
         with open(path, "r", encoding="utf-8") as f:
-            return f.read()
+            text = f.read()
+            other_agents = ", ".join(
+                f"agent {i}"
+                for i in range(self.agent.model.num_agents)
+                if i != self.agent.id
+            )
+            return (
+                text.replace("{agent_id}", str(self.agent.id))
+                    .replace("{other_agents}", other_agents)
+                    .replace("{valid_actions}", ", ".join(self.valid_actions))
+                    .replace("{valid_examples}", "\n".join(self.valid_actions))
+            )
 
 
     def reset(self):
@@ -46,9 +57,23 @@ class LLMDecisionModule:
 
         self.trim_history()
         response = self.llm_client.chat(self.messages)
+        self.agent.last_raw_response = response.get("raw_response", response["content"])
 
-        action_text = response["content"]
-        reasoning = response["thinking"]
+        raw_text = response["content"]
+        think_match = re.search(r"<think>(.*?)</think>", raw_text, re.DOTALL)
+
+        if think_match:
+            reasoning = think_match.group(1).strip()
+            action_text = re.sub(
+                r"<think>.*?</think>", "", raw_text, flags=re.DOTALL
+            ).strip()
+        elif "<think>" in raw_text:
+            # The model ran out of tokens before finishing its reasoning.
+            reasoning = raw_text.split("<think>", 1)[1].strip()
+            action_text = ""
+        else:
+            reasoning = response.get("thinking", "")
+            action_text = raw_text.strip()
 
         self.messages.append({
             "role": "assistant",
@@ -79,7 +104,7 @@ class LLMDecisionModule:
     def observation_to_message(self, obs: dict) -> str:
         wellbeing_lines = "\n".join(
             f"agent {i} wellbeing: {w}"
-            for i, w in enumerate(obs["society_wellbeing"])
+            for i, w in obs["society_wellbeing"].items()
         )
         return f"""
 Step: {self.agent.model.episode_step}
@@ -88,7 +113,7 @@ Here is an observation of the current state:
     your current health: {obs["health"]},
     number of berries in your bag: {obs["berries"]}, 
     your distance to nearest berry: {obs["distance_to_nearest_berry"]}, 
-    your wellbeing: {obs['society_wellbeing'][0] if len(obs['society_wellbeing']) > 0 else "N/A"},
+    your wellbeing: {self.agent.get_wellbeing()},
     {wellbeing_lines}
 
 Valid actions:

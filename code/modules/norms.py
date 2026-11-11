@@ -99,7 +99,7 @@ class NormsModule:
         if not society_wellbeing:
             return "no others"
 
-        min_wellbeing = min(society_wellbeing)
+        min_wellbeing = min(society_wellbeing.values())
 
         if min_wellbeing < self.low_wellbeing_threshold:
             return "low society wellbeing"

@@ -1,0 +1,32 @@
+{
+    "rng": 43,
+    "num_agents": 4,
+    "llm_agent_ids": [],
+    "num_llm_agents": 0,
+    "num_rule_agents": 4,
+    "num_berries": 8,
+    "width": 8,
+    "height": 4,
+    "max_steps": 3,
+    "prompt_type": null,
+    "rule_policy": "self_interested",
+    "run_dir": "saved_runs/pilots/steps_3/rule_only/self_interested/seed_43",
+    "agents": {
+        "0": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "self_interested"
+        },
+        "1": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "self_interested"
+        },
+        "2": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "self_interested"
+        },
+        "3": {
+            "decision_module": "RuleBasedDecisionModule",
+            "policy": "self_interested"
+        }
+    }
+}

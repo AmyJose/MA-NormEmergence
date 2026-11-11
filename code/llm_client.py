@@ -2,7 +2,6 @@ import os
 import requests
 import time
 import torch
-import re
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -79,11 +78,13 @@ class OllamaClient:
         )
 
 class IsambardClient():
-    def __init__(self, model_path, temperature=0.0, max_new_tokens=3000):
+    def __init__(self, model_path, temperature=0.0, max_new_tokens=3000,
+                 model_id = None,):
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
 
-        self.model_name= model_path
+        self.model_name= model_id or model_path
+        self.model_path = model_path
 
         #load tokeniser from model_path
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -126,21 +127,9 @@ class IsambardClient():
             skip_special_tokens=True,
         )
         
-        parsed_response = self.parse_qwen_output(response)
-
-        return parsed_response
-
-    def parse_qwen_output(self, text:str):
-        think_match = re.search(r"<think>(.*?)</think>", text, re.DOTALL)
-        thinking = think_match.group(1).strip() if think_match else ""
-
-        #removing the thinking block
-        cleaned = re.sub(r"<think> .*?</think>", "", text, flags=re.DOTALL).strip()
-
-        #final action = last non-empty line
-        action = cleaned.splitlines()[-1].strip()
-
-        return{
-            "content": action,
-            "thinking": thinking
+        return {
+            "content": response,
+            "thinking": "",
+            "raw_response": response,
         }
+    
